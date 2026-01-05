@@ -9,6 +9,7 @@ import ReactFlow, {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import FamilyMemberNode from '../components/FamilyMemberNode';
+import Toolbar from '../components/Toolbar';
 import { useTreeStore } from '../store/treeStore';
 
 const nodeTypes = {
@@ -89,8 +90,10 @@ export default function TreeBuilder() {
   }, [setSelectedPerson]);
 
   return (
-    <div className="h-[calc(100vh-8rem)] w-full relative">
-      <ReactFlow
+    <div className="h-[calc(100vh-8rem)] w-full relative flex flex-col">
+      <Toolbar />
+      <div className="flex-1 relative">
+        <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -109,7 +112,8 @@ export default function TreeBuilder() {
           }}
           maskColor="rgba(0, 0, 0, 0.1)"
         />
-      </ReactFlow>
+        </ReactFlow>
+      </div>
     </div>
   );
 }
