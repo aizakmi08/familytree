@@ -8,6 +8,7 @@ export default {
         sans: ['DM Sans', 'sans-serif'],
       },
       colors: {
+        border: 'var(--color-border)',
         primary: {
           50: '#fef5f0',
           100: '#fde8dd',
