@@ -46,6 +46,7 @@ export const useTreeStore = create((set, get) => {
       get().addToHistory(tree);
       set({ tree: updatedTree });
       storage.saveTree(updatedTree.id, updatedTree);
+      return newPerson.id; // Return the new person's ID
     },
 
     updatePerson: (personId, updates) => {

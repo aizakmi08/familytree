@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import AddPersonModal from './AddPersonModal';
 import { useTreeStore } from '../store/treeStore';
+import { useModal } from '../contexts/ModalContext';
 
 export default function Toolbar() {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { undo, redo, history, historyIndex } = useTreeStore();
+  const { addPersonModal, openAddPersonModal, closeAddPersonModal } = useModal();
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
@@ -15,7 +15,7 @@ export default function Toolbar() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => openAddPersonModal()}
               className="btn-primary text-sm"
             >
               + Add Person
@@ -49,8 +49,10 @@ export default function Toolbar() {
       </div>
 
       <AddPersonModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        isOpen={addPersonModal.isOpen}
+        onClose={closeAddPersonModal}
+        relatedPersonId={addPersonModal.relatedPersonId}
+        relationshipType={addPersonModal.relationshipType}
       />
     </>
   );

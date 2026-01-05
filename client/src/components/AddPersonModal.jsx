@@ -72,20 +72,12 @@ export default function AddPersonModal({ isOpen, onClose, relatedPersonId = null
       position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
     };
 
-    // Add person
-    addPerson(personData);
+    // Add person and get the new person's ID
+    const newPersonId = addPerson(personData);
     
     // If this person is related to another, add relationship
-    if (relatedPersonId && relationshipType) {
-      // We'll need to get the new person's ID after adding
-      // For now, we'll handle this in the store
-      setTimeout(() => {
-        const { tree } = useTreeStore.getState();
-        const newPerson = tree.people[tree.people.length - 1];
-        if (newPerson) {
-          addRelationship(relatedPersonId, newPerson.id, relationshipType);
-        }
-      }, 100);
+    if (relatedPersonId && relationshipType && newPersonId) {
+      addRelationship(relatedPersonId, newPersonId, relationshipType);
     }
 
     // Reset form

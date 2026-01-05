@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useTreeStore } from '../store/treeStore';
+import RelationshipSelector from './RelationshipSelector';
 
-export default function FamilyMemberNode({ id, data }) {
+export default function FamilyMemberNode({ id, data, xPos, yPos }) {
   const { setSelectedPerson, selectedPerson } = useTreeStore();
+  const [showRelationshipSelector, setShowRelationshipSelector] = useState(false);
   const isSelected = selectedPerson === id;
 
   const handleClick = useCallback(() => {
@@ -54,6 +56,29 @@ export default function FamilyMemberNode({ id, data }) {
       <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
       <Handle type="target" position={Position.Left} className="w-3 h-3" />
       <Handle type="source" position={Position.Right} className="w-3 h-3" />
+
+      {/* Relationship button (shown when selected) */}
+      {isSelected && (
+        <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRelationshipSelector(!showRelationshipSelector);
+            }}
+            className="bg-[var(--color-accent)] text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:opacity-90 transition-opacity"
+          >
+            + Add Relationship
+          </button>
+          {showRelationshipSelector && (
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
+              <RelationshipSelector
+                fromPersonId={id}
+                onClose={() => setShowRelationshipSelector(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
