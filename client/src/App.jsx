@@ -1,11 +1,15 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ModalProvider } from './contexts/ModalContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
-import Home from './pages/Home';
-import TreeBuilder from './pages/TreeBuilder';
-import Themes from './pages/Themes';
-import PaymentSuccess from './pages/PaymentSuccess';
+
+// Lazy load pages
+const Home = lazy(() => import('./pages/Home'));
+const TreeBuilder = lazy(() => import('./pages/TreeBuilder'));
+const Themes = lazy(() => import('./pages/Themes'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
 
 function App() {
   return (
