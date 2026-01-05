@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTreeStore } from '../store/treeStore';
+import { useAuthStore } from '../store/authStore';
+import { uploadImage } from '../utils/upload';
 
 export default function EditPersonModal({ isOpen, onClose, personId }) {
   const { tree, updatePerson } = useTreeStore();
+  const { token, isAuthenticated } = useAuthStore();
+  const [uploading, setUploading] = useState(false);
   const person = tree.people.find((p) => p.id === personId);
 
   const [formData, setFormData] = useState({
@@ -70,7 +74,7 @@ export default function EditPersonModal({ isOpen, onClose, personId }) {
     handleFileSelect(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
@@ -78,9 +82,24 @@ export default function EditPersonModal({ isOpen, onClose, personId }) {
       return;
     }
 
+    let photoUrl = formData.photoPreview;
+
+    // Upload image if user is authenticated and has a new file
+    if (isAuthenticated && formData.photo && token) {
+      setUploading(true);
+      const result = await uploadImage(formData.photo, token);
+      setUploading(false);
+      
+      if (result.success) {
+        photoUrl = result.url;
+      } else {
+        console.warn('Upload failed, using existing photo:', result.error);
+      }
+    }
+
     const updates = {
       name: formData.name.trim(),
-      photo: formData.photoPreview,
+      photo: photoUrl,
       birthDate: formData.birthDate || null,
       deathDate: formData.deathDate || null,
       bio: formData.bio.trim(),
@@ -264,8 +283,8 @@ export default function EditPersonModal({ isOpen, onClose, personId }) {
               >
                 Cancel
               </button>
-              <button type="submit" className="flex-1 btn-primary">
-                Save Changes
+              <button type="submit" disabled={uploading} className="flex-1 btn-primary disabled:opacity-50">
+                {uploading ? 'Uploading...' : 'Save Changes'}
               </button>
             </div>
           </form>

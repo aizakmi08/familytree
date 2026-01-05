@@ -1,8 +1,12 @@
 import { useState, useRef } from 'react';
 import { useTreeStore } from '../store/treeStore';
+import { useAuthStore } from '../store/authStore';
+import { uploadImage } from '../utils/upload';
 
 export default function AddPersonModal({ isOpen, onClose, relatedPersonId = null, relationshipType = null }) {
   const { addPerson, addRelationship } = useTreeStore();
+  const { token, isAuthenticated } = useAuthStore();
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     photo: null,
@@ -54,7 +58,7 @@ export default function AddPersonModal({ isOpen, onClose, relatedPersonId = null
     handleFileSelect(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
@@ -62,10 +66,26 @@ export default function AddPersonModal({ isOpen, onClose, relatedPersonId = null
       return;
     }
 
+    let photoUrl = formData.photoPreview;
+
+    // Upload image if user is authenticated and has a file
+    if (isAuthenticated && formData.photo && token) {
+      setUploading(true);
+      const result = await uploadImage(formData.photo, token);
+      setUploading(false);
+      
+      if (result.success) {
+        photoUrl = result.url;
+      } else {
+        // Fallback to local preview if upload fails
+        console.warn('Upload failed, using local preview:', result.error);
+      }
+    }
+
     // Create person data
     const personData = {
       name: formData.name.trim(),
-      photo: formData.photoPreview, // Will be uploaded to Cloudinary later
+      photo: photoUrl,
       birthDate: formData.birthDate || null,
       deathDate: formData.deathDate || null,
       bio: formData.bio.trim(),
@@ -252,8 +272,8 @@ export default function AddPersonModal({ isOpen, onClose, relatedPersonId = null
               >
                 Cancel
               </button>
-              <button type="submit" className="flex-1 btn-primary">
-                Add Person
+              <button type="submit" disabled={uploading} className="flex-1 btn-primary disabled:opacity-50">
+                {uploading ? 'Uploading...' : 'Add Person'}
               </button>
             </div>
           </form>
