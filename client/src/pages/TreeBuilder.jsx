@@ -114,6 +114,7 @@ export default function TreeBuilder() {
         />
         </ReactFlow>
       </div>
+      <Onboarding />
     </div>
   );
 }
