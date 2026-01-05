@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Theme variables - will be overridden by theme system */
+  --color-bg-primary: #fef9f6;
+  --color-bg-secondary: #ffffff;
+  --color-text-primary: #2d2d2d;
+  --color-text-secondary: #6b6b6b;
+  --color-accent: #ed5632;
+  --color-border: #e5e5e5;
+  
+  /* Paper texture */
+  --texture-opacity: 0.03;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] font-sans;
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,var(--texture-opacity)) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--color-accent)] text-white px-6 py-2.5 rounded-lg font-medium 
+           transition-all duration-200 hover:opacity-90 hover:shadow-md 
+           active:scale-[0.98];
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] 
+           border border-[var(--color-border)] px-6 py-2.5 rounded-lg font-medium 
+           transition-all duration-200 hover:bg-[var(--color-border)] 
+           active:scale-[0.98];
+  }
+  
+  .card {
+    @apply bg-[var(--color-bg-secondary)] rounded-xl shadow-sm border border-[var(--color-border)] 
+           p-6 transition-all duration-200 hover:shadow-md;
+  }
+}
