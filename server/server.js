@@ -38,8 +38,9 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 import authRoutes from './routes/auth.js';
+import treeRoutes from './routes/trees.js';
 app.use('/api/auth', authRoutes);
-// app.use('/api/trees', treeRoutes);
+app.use('/api/trees', treeRoutes);
 // app.use('/api/upload', uploadRoutes);
 // app.use('/api/payments', paymentRoutes);
 

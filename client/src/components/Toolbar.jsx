@@ -1,10 +1,16 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import AddPersonModal from './AddPersonModal';
 import EditPersonModal from './EditPersonModal';
 import { useTreeStore } from '../store/treeStore';
+import { useAuthStore } from '../store/authStore';
 import { useModal } from '../contexts/ModalContext';
+import { syncTreeToCloud, promptSaveToCloud } from '../utils/sync';
 
 export default function Toolbar() {
-  const { undo, redo, history, historyIndex } = useTreeStore();
+  const { undo, redo, history, historyIndex, tree } = useTreeStore();
+  const { isAuthenticated } = useAuthStore();
+  const [isSyncing, setIsSyncing] = useState(false);
   const {
     addPersonModal,
     openAddPersonModal,
@@ -15,6 +21,27 @@ export default function Toolbar() {
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
+
+  const handleSaveToCloud = async () => {
+    if (!isAuthenticated) {
+      const shouldSave = promptSaveToCloud();
+      if (shouldSave) {
+        // Open auth modal - handled by Layout component
+        return;
+      }
+      return;
+    }
+
+    setIsSyncing(true);
+    const result = await syncTreeToCloud(tree);
+    setIsSyncing(false);
+
+    if (result.success) {
+      alert('Tree saved to cloud successfully!');
+    } else {
+      alert(`Failed to save: ${result.error}`);
+    }
+  };
 
   return (
     <>
@@ -49,8 +76,29 @@ export default function Toolbar() {
           </div>
 
           <div className="flex items-center space-x-2">
+            {!isAuthenticated && (
+              <button
+                onClick={handleSaveToCloud}
+                className="btn-secondary text-sm"
+                title="Save to cloud"
+              >
+                💾 Save to Cloud
+              </button>
+            )}
+            {isAuthenticated && (
+              <button
+                onClick={handleSaveToCloud}
+                disabled={isSyncing}
+                className="btn-secondary text-sm disabled:opacity-50"
+                title="Sync to cloud"
+              >
+                {isSyncing ? 'Syncing...' : '☁️ Sync'}
+              </button>
+            )}
             <button className="btn-secondary text-sm">Export</button>
-            <button className="btn-secondary text-sm">Themes</button>
+            <Link to="/themes" className="btn-secondary text-sm">
+              Themes
+            </Link>
           </div>
         </div>
       </div>
