@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AddPersonModal from './AddPersonModal';
 import EditPersonModal from './EditPersonModal';
+import ExportModal from './ExportModal';
 import { useTreeStore } from '../store/treeStore';
 import { useAuthStore } from '../store/authStore';
 import { useModal } from '../contexts/ModalContext';
 import { syncTreeToCloud, promptSaveToCloud } from '../utils/sync';
 
-export default function Toolbar() {
+export default function Toolbar({ treeElement }) {
   const { undo, redo, history, historyIndex, tree } = useTreeStore();
   const { isAuthenticated } = useAuthStore();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const {
     addPersonModal,
     openAddPersonModal,
@@ -95,7 +97,12 @@ export default function Toolbar() {
                 {isSyncing ? 'Syncing...' : '☁️ Sync'}
               </button>
             )}
-            <button className="btn-secondary text-sm">Export</button>
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="btn-secondary text-sm"
+            >
+              Export
+            </button>
             <Link to="/themes" className="btn-secondary text-sm">
               Themes
             </Link>
@@ -113,6 +120,11 @@ export default function Toolbar() {
         isOpen={editPersonModal.isOpen}
         onClose={closeEditPersonModal}
         personId={editPersonModal.personId}
+      />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        treeElement={treeElement}
       />
     </>
   );

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -90,8 +90,8 @@ export default function TreeBuilder() {
   }, [setSelectedPerson]);
 
   return (
-    <div className="h-[calc(100vh-8rem)] w-full relative flex flex-col">
-      <Toolbar />
+    <div className="h-[calc(100vh-8rem)] w-full relative flex flex-col" ref={treeElementRef}>
+      <Toolbar treeElement={treeElementRef.current} />
       <div className="flex-1 relative">
         <ReactFlow
         nodes={nodes}
