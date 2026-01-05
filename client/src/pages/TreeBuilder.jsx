@@ -1,15 +1,16 @@
 import { useCallback, useMemo, useRef } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
-  addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import FamilyMemberNode from '../components/FamilyMemberNode';
 import Toolbar from '../components/Toolbar';
+import Onboarding from '../components/Onboarding';
 import { useTreeStore } from '../store/treeStore';
 
 const nodeTypes = {
@@ -18,6 +19,7 @@ const nodeTypes = {
 
 export default function TreeBuilder() {
   const { tree, setSelectedPerson } = useTreeStore();
+  const treeElementRef = useRef(null);
 
   // Convert tree data to React Flow format
   const initialNodes = useMemo(
