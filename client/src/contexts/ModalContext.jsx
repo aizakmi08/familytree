@@ -9,6 +9,11 @@ export function ModalProvider({ children }) {
     relationshipType: null,
   });
 
+  const [editPersonModal, setEditPersonModal] = useState({
+    isOpen: false,
+    personId: null,
+  });
+
   const openAddPersonModal = (relatedPersonId = null, relationshipType = null) => {
     setAddPersonModal({
       isOpen: true,
@@ -25,12 +30,29 @@ export function ModalProvider({ children }) {
     });
   };
 
+  const openEditPersonModal = (personId) => {
+    setEditPersonModal({
+      isOpen: true,
+      personId,
+    });
+  };
+
+  const closeEditPersonModal = () => {
+    setEditPersonModal({
+      isOpen: false,
+      personId: null,
+    });
+  };
+
   return (
     <ModalContext.Provider
       value={{
         addPersonModal,
         openAddPersonModal,
         closeAddPersonModal,
+        editPersonModal,
+        openEditPersonModal,
+        closeEditPersonModal,
       }}
     >
       {children}

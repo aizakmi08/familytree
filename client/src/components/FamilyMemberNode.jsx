@@ -2,15 +2,21 @@ import { useCallback, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useTreeStore } from '../store/treeStore';
 import RelationshipSelector from './RelationshipSelector';
+import { useModal } from '../contexts/ModalContext';
 
 export default function FamilyMemberNode({ id, data, xPos, yPos }) {
   const { setSelectedPerson, selectedPerson } = useTreeStore();
+  const { openEditPersonModal } = useModal();
   const [showRelationshipSelector, setShowRelationshipSelector] = useState(false);
   const isSelected = selectedPerson === id;
 
   const handleClick = useCallback(() => {
     setSelectedPerson(id);
   }, [id, setSelectedPerson]);
+
+  const handleDoubleClick = useCallback(() => {
+    openEditPersonModal(id);
+  }, [id, openEditPersonModal]);
 
   return (
     <div
@@ -20,6 +26,7 @@ export default function FamilyMemberNode({ id, data, xPos, yPos }) {
           : 'border-[var(--color-border)] hover:border-[var(--color-accent)]/50 hover:shadow-lg'
       }`}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
     >
       {/* Photo */}
       <div className="w-full h-32 bg-gradient-to-br from-[var(--color-accent)]/20 to-[var(--color-accent)]/5 rounded-t-xl flex items-center justify-center overflow-hidden">

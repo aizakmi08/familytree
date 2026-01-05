@@ -1,10 +1,17 @@
 import AddPersonModal from './AddPersonModal';
+import EditPersonModal from './EditPersonModal';
 import { useTreeStore } from '../store/treeStore';
 import { useModal } from '../contexts/ModalContext';
 
 export default function Toolbar() {
   const { undo, redo, history, historyIndex } = useTreeStore();
-  const { addPersonModal, openAddPersonModal, closeAddPersonModal } = useModal();
+  const {
+    addPersonModal,
+    openAddPersonModal,
+    closeAddPersonModal,
+    editPersonModal,
+    closeEditPersonModal,
+  } = useModal();
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
@@ -53,6 +60,11 @@ export default function Toolbar() {
         onClose={closeAddPersonModal}
         relatedPersonId={addPersonModal.relatedPersonId}
         relationshipType={addPersonModal.relationshipType}
+      />
+      <EditPersonModal
+        isOpen={editPersonModal.isOpen}
+        onClose={closeEditPersonModal}
+        personId={editPersonModal.personId}
       />
     </>
   );
