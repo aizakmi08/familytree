@@ -62,18 +62,20 @@ export default function Toolbar({ treeElement }) {
             <button
               onClick={undo}
               disabled={!canUndo}
-              className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-border)] transition-colors"
+              className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-border)] transition-colors"
               title="Undo"
             >
-              ↶ Undo
+              <span className="hidden sm:inline">↶ Undo</span>
+              <span className="sm:hidden">↶</span>
             </button>
             <button
               onClick={redo}
               disabled={!canRedo}
-              className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-border)] transition-colors"
+              className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-border)] transition-colors"
               title="Redo"
             >
-              ↷ Redo
+              <span className="hidden sm:inline">↷ Redo</span>
+              <span className="sm:hidden">↷</span>
             </button>
           </div>
 
