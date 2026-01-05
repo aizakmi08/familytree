@@ -1,7 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuthStore } from '../store/authStore';
+import AuthModal from './AuthModal';
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -29,7 +34,23 @@ export default function Layout({ children }) {
               >
                 Themes
               </Link>
-              <button className="btn-secondary text-sm">Sign In</button>
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-[var(--color-text-secondary)]">
+                    {user?.name || user?.email}
+                  </span>
+                  <button onClick={logout} className="btn-secondary text-sm">
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="btn-secondary text-sm"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -46,6 +67,11 @@ export default function Layout({ children }) {
           </div>
         </div>
       </footer>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 }
