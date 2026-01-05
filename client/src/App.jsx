@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import TreeBuilder from './pages/TreeBuilder';
 import Themes from './pages/Themes';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function App() {
   return (
@@ -12,11 +13,12 @@ function App() {
       <ModalProvider>
         <BrowserRouter>
           <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/tree" element={<TreeBuilder />} />
-              <Route path="/themes" element={<Themes />} />
-            </Routes>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/tree" element={<TreeBuilder />} />
+            <Route path="/themes" element={<Themes />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+          </Routes>
           </Layout>
         </BrowserRouter>
       </ModalProvider>

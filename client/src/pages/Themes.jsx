@@ -1,19 +1,53 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuthStore } from '../store/authStore';
 import { getFreeThemes, getPremiumThemes, getTheme } from '../themes/themes';
+import { createThemeCheckout, getUserPurchases } from '../utils/payments';
 
 export default function Themes() {
   const { currentTheme, changeTheme } = useTheme();
+  const { isAuthenticated, token } = useAuthStore();
+  const [purchasedThemes, setPurchasedThemes] = useState([]);
   const freeThemes = getFreeThemes();
   const premiumThemes = getPremiumThemes();
 
-  const handleThemeSelect = (themeId) => {
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      loadPurchases();
+    }
+  }, [isAuthenticated, token]);
+
+  const loadPurchases = async () => {
+    const result = await getUserPurchases(token);
+    if (result.success) {
+      setPurchasedThemes(result.purchasedThemes);
+    }
+  };
+
+  const handleThemeSelect = async (themeId) => {
     const theme = getTheme(themeId);
     if (theme.category === 'free') {
       changeTheme(themeId);
     } else {
-      // Premium theme - show purchase prompt
-      // This will be handled by payment integration later
-      alert(`This is a premium theme. Purchase for $${theme.price} to unlock.`);
+      // Premium theme
+      if (!isAuthenticated) {
+        alert('Please sign in to purchase premium themes.');
+        return;
+      }
+
+      if (purchasedThemes.includes(themeId)) {
+        // Already purchased
+        changeTheme(themeId);
+        return;
+      }
+
+      // Purchase theme
+      const result = await createThemeCheckout(themeId, token);
+      if (result.success) {
+        window.location.href = result.url;
+      } else {
+        alert(`Failed to start checkout: ${result.error}`);
+      }
     }
   };
 
@@ -53,6 +87,7 @@ export default function Themes() {
               isActive={currentTheme.id === theme.id}
               onSelect={handleThemeSelect}
               isPremium={true}
+              isPurchased={purchasedThemes.includes(theme.id)}
             />
           ))}
         </div>
@@ -61,7 +96,7 @@ export default function Themes() {
   );
 }
 
-function ThemeCard({ theme, isActive, onSelect, isPremium = false }) {
+function ThemeCard({ theme, isActive, onSelect, isPremium = false, isPurchased = false }) {
   return (
     <div
       className={`card cursor-pointer transition-all duration-200 hover:scale-105 relative overflow-hidden ${
@@ -77,7 +112,7 @@ function ThemeCard({ theme, isActive, onSelect, isPremium = false }) {
       )}
 
       {/* Lock Overlay for Premium */}
-      {isPremium && !isActive && (
+      {isPremium && !isActive && !isPurchased && (
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20 rounded-xl">
           <div className="text-center">
             <svg
