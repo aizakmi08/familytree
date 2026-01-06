@@ -1,18 +1,33 @@
+// Payment Routes - Stripe integration
+
 import express from 'express';
 import Stripe from 'stripe';
-import { authenticate } from '../middleware/auth.js';
 import User from '../models/User.js';
+import { auth } from '../middleware/auth.js';
+import { themes } from '../services/themes.js';
 
 const router = express.Router();
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Create checkout session for theme purchase
-router.post('/checkout/theme', authenticate, async (req, res) => {
+/**
+ * POST /api/payments/create-checkout
+ * Create a Stripe checkout session for theme purchase
+ */
+router.post('/create-checkout', auth, async (req, res) => {
   try {
     const { themeId } = req.body;
 
-    if (!themeId) {
-      return res.status(400).json({ message: 'Theme ID is required' });
+    const theme = themes[themeId];
+    if (!theme || theme.category !== 'premium') {
+      return res.status(400).json({ error: 'Invalid premium theme' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    
+    // Check if already purchased
+    if (user.purchasedThemes.includes(themeId)) {
+      return res.status(400).json({ error: 'Theme already purchased' });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -22,36 +37,37 @@ router.post('/checkout/theme', authenticate, async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Premium Theme: ${themeId}`,
-              description: `Unlock the ${themeId} theme for your family tree`,
+              name: `${theme.name} Theme`,
+              description: theme.description,
             },
-            unit_amount: 499, // $4.99 in cents
+            unit_amount: Math.round(theme.price * 100), // Stripe uses cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/themes`,
+      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL}/builder`,
       metadata: {
-        userId: req.userId.toString(),
+        userId: req.user.userId.toString(),
+        themeId,
         type: 'theme',
-        themeId: themeId,
       },
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    res.json({ url: session.url, sessionId: session.id });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
-    res.status(500).json({ message: 'Payment session creation failed' });
+    console.error('Checkout error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
 
-// Create checkout session for export purchase
-router.post('/checkout/export', authenticate, async (req, res) => {
+/**
+ * POST /api/payments/create-premium-checkout
+ * Create checkout for premium subscription
+ */
+router.post('/create-premium-checkout', auth, async (req, res) => {
   try {
-    const { format } = req.body; // 'pdf' or 'png'
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -59,36 +75,41 @@ router.post('/checkout/export', authenticate, async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Premium Export: ${format.toUpperCase()}`,
-              description: `Export your family tree as ${format.toUpperCase()} without watermark`,
+              name: 'AI Family Tree Premium',
+              description: 'Unlimited generations, no watermarks, all themes included',
             },
-            unit_amount: 299, // $2.99 in cents
+            unit_amount: 999, // $9.99
+            recurring: {
+              interval: 'month',
+            },
           },
           quantity: 1,
         },
       ],
-      mode: 'payment',
-      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/tree`,
+      mode: 'subscription',
+      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL}/builder`,
       metadata: {
-        userId: req.userId.toString(),
-        type: 'export',
-        format: format,
+        userId: req.user.userId.toString(),
+        type: 'premium',
       },
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    res.json({ url: session.url, sessionId: session.id });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
-    res.status(500).json({ message: 'Payment session creation failed' });
+    console.error('Premium checkout error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
 
-// Webhook handler for Stripe events
+/**
+ * POST /api/payments/webhook
+ * Handle Stripe webhooks
+ */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  let event;
 
+  let event;
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -101,32 +122,57 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 
   // Handle the event
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const { userId, type, themeId, format } = session.metadata;
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      const { userId, themeId, type } = session.metadata;
 
-    if (type === 'theme' && themeId) {
-      // Add theme to user's purchased themes
-      await User.findByIdAndUpdate(userId, {
-        $addToSet: { purchasedThemes: themeId },
-      });
-    } else if (type === 'export') {
-      // Export purchase - could track this separately if needed
-      console.log(`Export purchased: ${format} by user ${userId}`);
+      if (type === 'theme') {
+        // Add theme to user's purchased themes
+        await User.findByIdAndUpdate(userId, {
+          $addToSet: { purchasedThemes: themeId },
+        });
+        console.log(`✅ Theme ${themeId} purchased by user ${userId}`);
+      } else if (type === 'premium') {
+        // Upgrade user to premium
+        await User.findByIdAndUpdate(userId, {
+          isPremium: true,
+        });
+        console.log(`✅ User ${userId} upgraded to premium`);
+      }
+      break;
     }
+
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object;
+      // Handle subscription cancellation if needed
+      console.log('Subscription cancelled:', subscription.id);
+      break;
+    }
+
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
   }
 
   res.json({ received: true });
 });
 
-// Get user's purchased themes
-router.get('/purchases', authenticate, async (req, res) => {
+/**
+ * GET /api/payments/purchases
+ * Get user's purchases
+ */
+router.get('/purchases', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('purchasedThemes');
-    res.json({ purchasedThemes: user?.purchasedThemes || [] });
+    const user = await User.findById(req.user.userId).select('purchasedThemes isPremium generationCredits');
+    
+    res.json({
+      purchasedThemes: user.purchasedThemes,
+      isPremium: user.isPremium,
+      generationCredits: user.generationCredits,
+    });
   } catch (error) {
     console.error('Get purchases error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: 'Failed to get purchases' });
   }
 });
 

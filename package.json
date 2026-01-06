@@ -1,7 +1,7 @@
 {
-  "name": "family-tree-builder",
+  "name": "ai-family-tree",
   "version": "1.0.0",
-  "description": "A beautiful family tree builder with themes and premium features",
+  "description": "AI-Generated Family Tree Builder - Create beautiful family trees using AI",
   "private": true,
   "workspaces": [
     "client",

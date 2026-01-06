@@ -1,32 +1,53 @@
+// Authentication Middleware
+
 import jwt from 'jsonwebtoken';
 
-export const authenticate = (req, res, next) => {
+/**
+ * Required authentication middleware
+ * Blocks request if no valid token
+ */
+export function auth(req, res, next) {
   try {
-    const token = req.headers.authorization?.split(' ')[1]; // Bearer <token>
-
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    req.userId = decoded.userId;
+    const token = authHeader.split(' ')[1];
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-};
-
-export const optionalAuth = (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-      req.userId = decoded.userId;
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
     }
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+/**
+ * Optional authentication middleware
+ * Attaches user if valid token, but doesn't block if missing
+ */
+export function optionalAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+    }
+    
     next();
   } catch (error) {
-    // Continue without auth for optional routes
+    // Token invalid/expired, but we continue without user
     next();
   }
-};
+}
+
+export default { auth, optionalAuth };
 

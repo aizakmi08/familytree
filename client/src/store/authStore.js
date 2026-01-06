@@ -9,61 +9,67 @@ export const useAuthStore = create(
       user: null,
       token: null,
       isAuthenticated: false,
+      isLoading: false,
+      error: null,
 
-      // Register
-      register: async (email, password, name) => {
+      // Login
+      login: async (email, password) => {
+        set({ isLoading: true, error: null });
+        
         try {
-          const response = await fetch(`${API_URL}/auth/register`, {
+          const res = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password, name }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
           });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.message || 'Registration failed');
+          
+          const data = await res.json();
+          
+          if (!res.ok) {
+            throw new Error(data.error || 'Login failed');
           }
-
+          
           set({
             user: data.user,
             token: data.token,
             isAuthenticated: true,
+            isLoading: false,
           });
-
+          
           return { success: true };
         } catch (error) {
+          set({ isLoading: false, error: error.message });
           return { success: false, error: error.message };
         }
       },
 
-      // Login
-      login: async (email, password) => {
+      // Register
+      register: async (email, password, name) => {
+        set({ isLoading: true, error: null });
+        
         try {
-          const response = await fetch(`${API_URL}/auth/login`, {
+          const res = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, name }),
           });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.message || 'Login failed');
+          
+          const data = await res.json();
+          
+          if (!res.ok) {
+            throw new Error(data.error || 'Registration failed');
           }
-
+          
           set({
             user: data.user,
             token: data.token,
             isAuthenticated: true,
+            isLoading: false,
           });
-
+          
           return { success: true };
         } catch (error) {
+          set({ isLoading: false, error: error.message });
           return { success: false, error: error.message };
         }
       },
@@ -74,6 +80,7 @@ export const useAuthStore = create(
           user: null,
           token: null,
           isAuthenticated: false,
+          error: null,
         });
       },
 
@@ -81,28 +88,35 @@ export const useAuthStore = create(
       fetchUser: async () => {
         const { token } = get();
         if (!token) return;
-
+        
         try {
-          const response = await fetch(`${API_URL}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          const res = await fetch(`${API_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
           });
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch user');
+          
+          if (!res.ok) {
+            throw new Error('Session expired');
           }
-
-          const user = await response.json();
-          set({ user, isAuthenticated: true });
-        } catch (error) {
-          // Token might be invalid, logout
-          get().logout();
+          
+          const data = await res.json();
+          set({ user: data.user, isAuthenticated: true });
+        } catch {
+          set({ user: null, token: null, isAuthenticated: false });
         }
+      },
+
+      // Clear error
+      clearError: () => {
+        set({ error: null });
       },
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

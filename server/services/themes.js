@@ -1,11 +1,9 @@
-// Theme definitions with prompt templates for AI generation
+// Server-side theme definitions (mirrors client themes)
 
 export const themes = {
-  // Free Themes
   classic: {
     id: 'classic',
     name: 'Classic',
-    emoji: '📜',
     category: 'free',
     price: 0,
     description: 'Traditional family tree on elegant parchment paper',
@@ -28,7 +26,6 @@ STYLE GUIDELINES:
   modern: {
     id: 'modern',
     name: 'Modern',
-    emoji: '✨',
     category: 'free',
     price: 0,
     description: 'Clean, contemporary design with minimalist aesthetics',
@@ -52,7 +49,6 @@ STYLE GUIDELINES:
   vintage: {
     id: 'vintage',
     name: 'Vintage',
-    emoji: '🎞️',
     category: 'free',
     price: 0,
     description: 'Nostalgic 1920s art deco inspired design',
@@ -75,7 +71,6 @@ STYLE GUIDELINES:
   minimalist: {
     id: 'minimalist',
     name: 'Minimalist',
-    emoji: '⚪',
     category: 'free',
     price: 0,
     description: 'Ultra-simple black and white design',
@@ -96,11 +91,9 @@ STYLE GUIDELINES:
 - Subtle gray tones only`,
   },
 
-  // Premium Themes
   gameOfThrones: {
     id: 'gameOfThrones',
     name: 'Game of Thrones',
-    emoji: '🐉',
     category: 'premium',
     price: 4.99,
     description: 'Medieval house lineage chart inspired by Westeros',
@@ -125,7 +118,6 @@ STYLE GUIDELINES:
   simpsons: {
     id: 'simpsons',
     name: 'The Simpsons',
-    emoji: '🍩',
     category: 'premium',
     price: 4.99,
     description: 'Springfield-style cartoon family tree',
@@ -150,7 +142,6 @@ STYLE GUIDELINES:
   harryPotter: {
     id: 'harryPotter',
     name: 'Harry Potter',
-    emoji: '⚡',
     category: 'premium',
     price: 4.99,
     description: 'Magical wizarding world family tree',
@@ -175,7 +166,6 @@ STYLE GUIDELINES:
   peakyBlinders: {
     id: 'peakyBlinders',
     name: 'Peaky Blinders',
-    emoji: '🎩',
     category: 'premium',
     price: 4.99,
     description: '1920s Birmingham gangster aesthetic',
@@ -199,12 +189,10 @@ STYLE GUIDELINES:
   },
 };
 
-export const getFreeThemes = () => 
-  Object.values(themes).filter((t) => t.category === 'free');
-
-export const getPremiumThemes = () =>
-  Object.values(themes).filter((t) => t.category === 'premium');
-
 export const getTheme = (themeId) => themes[themeId] || themes.classic;
 
-export const getAllThemes = () => Object.values(themes);
+export const isPremiumTheme = (themeId) => {
+  const theme = themes[themeId];
+  return theme?.category === 'premium';
+};
+
