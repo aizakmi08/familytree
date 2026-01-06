@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { buildPrompt } from '../services/promptBuilder.js';
-import { generateImage, isConfigured as isOpenAIConfigured } from '../services/openai.js';
+import { generateImage, isConfigured as isKieAIConfigured } from '../services/kieai.js';
 import { saveGeneratedImage, addWatermark, isConfigured as isCloudinaryConfigured } from '../services/compositor.js';
 import { isPremiumTheme } from '../services/themes.js';
 import { optionalAuth } from '../middleware/auth.js';
@@ -28,11 +28,11 @@ router.post('/', optionalAuth, async (req, res) => {
       return res.status(400).json({ error: 'At least 1 relationship is required' });
     }
 
-    // Check if OpenAI is configured
-    if (!isOpenAIConfigured()) {
+    // Check if Kie AI is configured
+    if (!isKieAIConfigured()) {
       return res.status(503).json({ 
-        error: 'AI generation is not configured. Please set OPENAI_API_KEY.',
-        code: 'OPENAI_NOT_CONFIGURED'
+        error: 'AI generation is not configured. Please set KIE_AI_API_KEY.',
+        code: 'KIE_AI_NOT_CONFIGURED'
       });
     }
 
@@ -70,8 +70,14 @@ router.post('/', optionalAuth, async (req, res) => {
     // Build the prompt
     const prompt = buildPrompt({ members, relationships }, theme);
 
-    // Generate image with DALL-E
-    const { url: dalleUrl, revisedPrompt } = await generateImage(prompt, '1024x1024');
+    // Generate image with Kie AI
+    // Use 2K resolution and 1:1 aspect ratio for family trees
+    const { url: generatedUrl, taskId } = await generateImage(prompt, {
+      model: 'nano-banana-pro',
+      aspectRatio: '1:1',
+      resolution: '2K',
+      outputFormat: 'png',
+    });
 
     // Save to Cloudinary (with watermark for free users)
     let finalResult;
@@ -79,16 +85,16 @@ router.post('/', optionalAuth, async (req, res) => {
       if (req.user) {
         const user = await User.findById(req.user.userId);
         if (user.isPremium) {
-          finalResult = await saveGeneratedImage(dalleUrl);
+          finalResult = await saveGeneratedImage(generatedUrl);
         } else {
-          finalResult = await addWatermark(dalleUrl);
+          finalResult = await addWatermark(generatedUrl);
         }
       } else {
-        finalResult = await addWatermark(dalleUrl);
+        finalResult = await addWatermark(generatedUrl);
       }
     } else {
-      // Use DALL-E URL directly if Cloudinary not configured (temporary URL)
-      finalResult = { url: dalleUrl };
+      // Use Kie AI URL directly if Cloudinary not configured
+      finalResult = { url: generatedUrl };
     }
 
     // Deduct credit for authenticated non-premium users
@@ -123,7 +129,7 @@ router.post('/', optionalAuth, async (req, res) => {
 
       tree.generations.push({
         imageUrl: finalResult.url,
-        prompt: revisedPrompt || prompt,
+        prompt: prompt,
         theme,
       });
 
@@ -150,11 +156,10 @@ router.post('/', optionalAuth, async (req, res) => {
  */
 router.get('/status', (req, res) => {
   res.json({
-    openaiConfigured: isOpenAIConfigured(),
+    kieAiConfigured: isKieAIConfigured(),
     cloudinaryConfigured: isCloudinaryConfigured(),
-    ready: isOpenAIConfigured(),
+    ready: isKieAIConfigured(),
   });
 });
 
 export default router;
-

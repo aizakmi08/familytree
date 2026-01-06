@@ -152,7 +152,7 @@ export default function Builder() {
         {/* API Status Warning */}
         {!apiReady && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-xl">
-            <strong>Note:</strong> AI generation requires an OpenAI API key. Please configure OPENAI_API_KEY in the server .env file.
+            <strong>Note:</strong> AI generation requires a Kie AI API key. Please configure KIE_AI_API_KEY in the server .env file.
           </div>
         )}
 
