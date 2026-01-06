@@ -107,6 +107,7 @@ router.post('/', optionalAuth, async (req, res) => {
           name: treeName || 'My Family Tree',
           theme,
           members: members.map(m => ({
+            clientId: m.id,
             name: m.name,
             photoUrl: m.photoUrl,
             birthYear: m.birthYear,

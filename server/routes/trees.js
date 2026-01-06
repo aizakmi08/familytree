@@ -56,8 +56,18 @@ router.post('/', auth, async (req, res) => {
       userId: req.user.userId,
       name: name || 'My Family Tree',
       theme: theme || 'classic',
-      members: members || [],
-      relationships: relationships || [],
+      members: (members || []).map((m) => ({
+        clientId: m.id || m.clientId, // accept either shape
+        name: m.name,
+        photoUrl: m.photoUrl || m.photoUrl,
+        birthYear: m.birthYear ?? null,
+        deathYear: m.deathYear ?? null,
+      })),
+      relationships: (relationships || []).map((r) => ({
+        from: r.from,
+        to: r.to,
+        type: r.type,
+      })),
     });
 
     await tree.save();
@@ -82,8 +92,18 @@ router.put('/:id', auth, async (req, res) => {
       {
         name,
         theme,
-        members,
-        relationships,
+        members: (members || []).map((m) => ({
+          clientId: m.id || m.clientId,
+          name: m.name,
+          photoUrl: m.photoUrl || m.photoUrl,
+          birthYear: m.birthYear ?? null,
+          deathYear: m.deathYear ?? null,
+        })),
+        relationships: (relationships || []).map((r) => ({
+          from: r.from,
+          to: r.to,
+          type: r.type,
+        })),
       },
       { new: true }
     );

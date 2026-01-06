@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const memberSchema = new mongoose.Schema({
+  // ID coming from the client (Zustand store). We keep this so relationships can reference members reliably.
+  clientId: {
+    type: String,
+    required: true,
+  },
   name: {
     type: String,
     required: true,
@@ -22,11 +27,13 @@ const memberSchema = new mongoose.Schema({
 
 const relationshipSchema = new mongoose.Schema({
   from: {
-    type: mongoose.Schema.Types.ObjectId,
+    // References memberSchema.clientId (string from client)
+    type: String,
     required: true,
   },
   to: {
-    type: mongoose.Schema.Types.ObjectId,
+    // References memberSchema.clientId (string from client)
+    type: String,
     required: true,
   },
   type: {
@@ -77,7 +84,8 @@ const familyTreeSchema = new mongoose.Schema({
 
 // Get member by id helper
 familyTreeSchema.methods.getMember = function(memberId) {
-  return this.members.id(memberId);
+  // Prefer matching by clientId; fall back to subdocument _id if needed
+  return this.members.find((m) => m.clientId === memberId) || this.members.id(memberId);
 };
 
 // Add member helper
