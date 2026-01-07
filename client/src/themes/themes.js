@@ -1,13 +1,13 @@
 // Theme definitions with prompt templates for AI generation
+// All themes are FREE - payment is only for download/share ($2.99)
 
 export const themes = {
-  // Free Themes
+  // Standard Themes
   classic: {
     id: 'classic',
     name: 'Classic',
     emoji: '📜',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Traditional family tree on elegant parchment paper',
     promptTemplate: `Create a classic family tree diagram on aged cream-colored parchment paper with an elegant vintage design.
 
@@ -29,8 +29,7 @@ STYLE GUIDELINES:
     id: 'modern',
     name: 'Modern',
     emoji: '✨',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Clean, contemporary design with minimalist aesthetics',
     promptTemplate: `Create a modern, minimalist family tree with a clean contemporary design.
 
@@ -53,8 +52,7 @@ STYLE GUIDELINES:
     id: 'vintage',
     name: 'Vintage',
     emoji: '🎞️',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Nostalgic 1920s art deco inspired design',
     promptTemplate: `Create a vintage Art Deco style family tree inspired by the 1920s aesthetic.
 
@@ -76,8 +74,7 @@ STYLE GUIDELINES:
     id: 'minimalist',
     name: 'Minimalist',
     emoji: '⚪',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Ultra-simple black and white design',
     promptTemplate: `Create an ultra-minimalist family tree with maximum simplicity.
 
@@ -96,13 +93,12 @@ STYLE GUIDELINES:
 - Subtle gray tones only`,
   },
 
-  // Premium Themes
+  // Fun Themes
   gameOfThrones: {
     id: 'gameOfThrones',
     name: 'Game of Thrones',
     emoji: '🐉',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Medieval house lineage chart inspired by Westeros',
     promptTemplate: `Create a medieval family tree on aged parchment paper in the style of Game of Thrones house lineage charts.
 
@@ -126,8 +122,7 @@ STYLE GUIDELINES:
     id: 'simpsons',
     name: 'The Simpsons',
     emoji: '🍩',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Springfield-style cartoon family tree',
     promptTemplate: `Create a colorful, cartoon-style family tree inspired by The Simpsons animated series.
 
@@ -151,8 +146,7 @@ STYLE GUIDELINES:
     id: 'harryPotter',
     name: 'Harry Potter',
     emoji: '⚡',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Magical wizarding world family tree',
     promptTemplate: `Create a magical family tree in the style of Harry Potter wizarding world ancestry charts.
 
@@ -176,8 +170,7 @@ STYLE GUIDELINES:
     id: 'peakyBlinders',
     name: 'Peaky Blinders',
     emoji: '🎩',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: '1920s Birmingham gangster aesthetic',
     promptTemplate: `Create a gritty, noir family tree inspired by Peaky Blinders 1920s Birmingham aesthetic.
 
@@ -197,14 +190,78 @@ STYLE GUIDELINES:
 - Film noir dramatic lighting
 - Vintage newspaper clipping aesthetics`,
   },
+
+  // Nature & Elegant Themes
+  botanical: {
+    id: 'botanical',
+    name: 'Botanical Garden',
+    emoji: '🌿',
+    category: 'nature',
+    description: 'Beautiful botanical illustration style',
+    promptTemplate: `Create a botanical-style family tree with beautiful nature illustrations.
+
+FAMILY STRUCTURE:
+{{familyStructure}}
+
+STYLE GUIDELINES:
+- Soft cream background like vintage botanical prints
+- Detailed floral and leaf illustrations throughout
+- {{memberCount}} circular portrait frames wrapped in botanical wreaths
+- Connecting lines made of delicate vine tendrils
+- Watercolor-style flowers and leaves
+- Muted greens, soft pinks, and cream colors
+- Scientific illustration quality
+- Names in elegant cursive script
+- Pressed flower aesthetic
+- Subtle aged paper texture`,
+  },
+
+  celestial: {
+    id: 'celestial',
+    name: 'Celestial',
+    emoji: '🌙',
+    category: 'nature',
+    description: 'Mystical stars and moon theme',
+    promptTemplate: `Create a celestial-themed family tree with stars, moons, and cosmic elements.
+
+FAMILY STRUCTURE:
+{{familyStructure}}
+
+STYLE GUIDELINES:
+- Deep midnight blue and purple gradient background
+- Gold and silver metallic accents
+- {{memberCount}} circular portrait frames surrounded by constellation patterns
+- Connecting lines made of starlight trails
+- Moon phases decorating the borders
+- Zodiac and celestial symbols
+- Names in elegant gold typography
+- Twinkling star effects
+- Cosmic dust and nebula textures
+- Mystical, dreamy atmosphere`,
+  },
+
+  // Custom theme placeholder
+  custom: {
+    id: 'custom',
+    name: 'Custom Theme',
+    emoji: '🎨',
+    category: 'custom',
+    description: 'Create your own unique style',
+    promptTemplate: `{{customPrompt}}`,
+  },
 };
 
-export const getFreeThemes = () => 
-  Object.values(themes).filter((t) => t.category === 'free');
+export const getStandardThemes = () =>
+  Object.values(themes).filter((t) => t.category === 'standard');
 
-export const getPremiumThemes = () =>
-  Object.values(themes).filter((t) => t.category === 'premium');
+export const getFunThemes = () =>
+  Object.values(themes).filter((t) => t.category === 'fun');
+
+export const getNatureThemes = () =>
+  Object.values(themes).filter((t) => t.category === 'nature');
 
 export const getTheme = (themeId) => themes[themeId] || themes.classic;
 
-export const getAllThemes = () => Object.values(themes);
+export const getAllThemes = () => Object.values(themes).filter(t => t.id !== 'custom');
+
+export const DOWNLOAD_PRICE = 2.99;

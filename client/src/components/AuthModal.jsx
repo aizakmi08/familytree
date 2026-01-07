@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 
 export default function AuthModal({ isOpen, onClose }) {
-  const [mode, setMode] = useState('login'); // 'login' or 'register'
+  const [mode, setMode] = useState('login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
   });
   const [error, setError] = useState('');
-  
+
   const { login, register, isLoading } = useAuthStore();
 
   const handleInputChange = (e) => {
@@ -45,26 +45,24 @@ export default function AuthModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-surface-900 rounded-xl border border-surface-700 w-full max-w-md overflow-hidden animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-5 text-white">
+        <div className="px-6 py-4 border-b border-surface-800">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold">
-                {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+              <h2 className="text-lg font-semibold text-white">
+                {mode === 'login' ? 'Sign In' : 'Create Account'}
               </h2>
-              <p className="text-white/80 text-sm mt-1">
-                {mode === 'login'
-                  ? 'Sign in to save your family trees'
-                  : 'Start building your family tree today'}
+              <p className="text-gray-500 text-sm">
+                {mode === 'login' ? 'Save your family trees' : 'Get started for free'}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-gray-500 hover:text-white transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -72,9 +70,9 @@ export default function AuthModal({ isOpen, onClose }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -128,21 +126,21 @@ export default function AuthModal({ isOpen, onClose }) {
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="spinner" />
-                {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                {mode === 'login' ? 'Signing in...' : 'Creating...'}
               </span>
             ) : (
               mode === 'login' ? 'Sign In' : 'Create Account'
             )}
           </button>
 
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-center text-sm text-gray-500">
             {mode === 'login' ? (
               <>
                 Don't have an account?{' '}
                 <button
                   type="button"
                   onClick={switchMode}
-                  className="text-primary-600 font-medium hover:underline"
+                  className="text-primary-400 hover:text-primary-300"
                 >
                   Sign up
                 </button>
@@ -153,7 +151,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={switchMode}
-                  className="text-primary-600 font-medium hover:underline"
+                  className="text-primary-400 hover:text-primary-300"
                 >
                   Sign in
                 </button>
@@ -165,4 +163,3 @@ export default function AuthModal({ isOpen, onClose }) {
     </div>
   );
 }
-

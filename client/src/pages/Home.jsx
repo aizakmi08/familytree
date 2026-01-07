@@ -3,11 +3,44 @@ import { useState } from 'react';
 import AuthModal from '../components/AuthModal';
 import { useAuthStore } from '../store/authStore';
 
-// Example generated images for showcase
-const EXAMPLE_IMAGES = [
-  { theme: 'Game of Thrones', emoji: '🐉' },
-  { theme: 'Classic', emoji: '📜' },
-  { theme: 'Harry Potter', emoji: '⚡' },
+// Example family tree images - replace with actual generated examples
+const EXAMPLE_TREES = [
+  {
+    id: 1,
+    theme: 'Classic',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
+  {
+    id: 2,
+    theme: 'Game of Thrones',
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
+  {
+    id: 3,
+    theme: 'Harry Potter',
+    image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
+  {
+    id: 4,
+    theme: 'Botanical',
+    image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
+  {
+    id: 5,
+    theme: 'Vintage',
+    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
+  {
+    id: 6,
+    theme: 'Celestial',
+    image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=400&fit=crop&auto=format',
+    placeholder: true
+  },
 ];
 
 export default function Home() {
@@ -15,33 +48,37 @@ export default function Home() {
   const { isAuthenticated, user } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-surface-50 to-surface-100">
+    <div className="min-h-screen bg-surface-950">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-surface-800">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl">🌳</span>
-              <span className="font-serif text-xl font-bold text-gray-900">AI Family Tree</span>
+            <Link to="/" className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                <svg className="w-5 h-5 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
+                </svg>
+              </div>
+              <span className="font-serif text-lg font-semibold text-white">Heritage</span>
             </Link>
-            <div className="flex items-center gap-4">
-              <Link to="/gallery" className="text-gray-600 hover:text-gray-900 font-medium">
+            <div className="flex items-center gap-6">
+              <Link to="/gallery" className="text-gray-400 hover:text-white text-sm transition-colors">
                 Gallery
               </Link>
               {isAuthenticated ? (
-                <Link to="/builder" className="btn-primary">
-                  Create Tree
+                <Link to="/builder" className="btn-primary text-sm py-2">
+                  Create
                 </Link>
               ) : (
                 <>
                   <button
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="text-gray-600 hover:text-gray-900 font-medium"
+                    className="text-gray-400 hover:text-white text-sm transition-colors"
                   >
                     Sign In
                   </button>
-                  <Link to="/builder" className="btn-primary">
-                    Create Tree
+                  <Link to="/builder" className="btn-primary text-sm py-2">
+                    Create
                   </Link>
                 </>
               )}
@@ -51,307 +88,160 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center">
-          <div className="inline-block bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            ✨ AI-Powered Family Trees
-          </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 animate-fade-in leading-tight">
-            Transform Your Family Story
-            <span className="block text-primary-500">Into Art</span>
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+            Your Family Story,
+            <span className="block text-gradient">Beautifully Crafted</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10 animate-slide-up">
-            Add your family members, choose a stunning theme, and watch as AI 
-            creates a beautiful, one-of-a-kind family tree artwork in seconds.
+          <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10 leading-relaxed">
+            Transform your family history into stunning AI-generated artwork.
+            Upload photos, choose a theme, and create something worth framing.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 animate-slide-up">
-            <Link to="/builder" className="btn-primary text-lg px-10 py-4">
-              Start Building — Free
-            </Link>
-            <a href="#themes" className="btn-secondary text-lg px-10 py-4">
-              Explore Themes
-            </a>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-gray-500">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎨</span>
-              <span>AI-Generated Art</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⚡</span>
-              <span>Instant Results</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🔒</span>
-              <span>Private & Secure</span>
-            </div>
-          </div>
+          <Link
+            to="/builder"
+            className="inline-flex items-center gap-2 btn-primary text-base px-8 py-4"
+          >
+            Start Creating
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
         </div>
+      </section>
 
-        {/* Preview Area */}
-        <div className="mt-16 relative">
-          <div className="bg-gradient-to-r from-primary-100 via-primary-50 to-primary-100 rounded-3xl p-8 md:p-12">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto">
-              <div className="grid md:grid-cols-3 gap-4">
-                {EXAMPLE_IMAGES.map((example, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square bg-gradient-to-br from-surface-100 to-surface-200 rounded-xl flex flex-col items-center justify-center text-gray-400"
-                  >
-                    <span className="text-5xl mb-2">{example.emoji}</span>
-                    <p className="text-sm font-medium">{example.theme}</p>
-                    <p className="text-xs">Theme Preview</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-center text-gray-400 mt-4 text-sm">
-                AI-generated family trees will appear here after generation
-              </p>
-            </div>
+      {/* Example Gallery */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-3">Explore Themes</h2>
+            <p className="text-gray-500">Each theme brings a unique artistic style to your family tree</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {EXAMPLE_TREES.map((example) => (
+              <Link
+                key={example.id}
+                to="/builder"
+                className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-surface-600 transition-all duration-300"
+              >
+                <img
+                  src={example.image}
+                  alt={`${example.theme} theme example`}
+                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <p className="text-white font-medium">{example.theme}</p>
+                  <p className="text-gray-400 text-sm">Theme</p>
+                </div>
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="inline-flex items-center gap-1 bg-surface-900/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
+                    Try it
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">How It Works</h2>
-        <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Create your family tree in three simple steps
-        </p>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              step: '01',
-              icon: '👥',
-              title: 'Add Family Members',
-              description: 'Enter names, birth years, and upload photos for each family member. As many as you like!',
-            },
-            {
-              step: '02',
-              icon: '🎭',
-              title: 'Choose a Theme',
-              description: 'Pick from elegant classics or fun themes inspired by Game of Thrones, Simpsons, and more.',
-            },
-            {
-              step: '03',
-              icon: '✨',
-              title: 'Generate with AI',
-              description: 'Watch as our AI creates a stunning, unique family tree artwork in about 30 seconds.',
-            },
-          ].map((feature) => (
-            <div key={feature.step} className="card-hover text-center relative">
-              <div className="absolute -top-4 left-6 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                {feature.step}
+      <section className="py-20 px-6 border-t border-surface-800">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-white mb-3">How It Works</h2>
+            <p className="text-gray-500">Three simple steps to create your masterpiece</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Add Members',
+                description: 'Enter names, dates, and upload photos of your family members.',
+              },
+              {
+                step: '02',
+                title: 'Choose Theme',
+                description: 'Select from classic, fantasy, botanical, and more artistic styles.',
+              },
+              {
+                step: '03',
+                title: 'Generate',
+                description: 'AI creates a unique artwork based on your family and chosen theme.',
+              },
+            ].map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-surface-800 border border-surface-700 mb-4">
+                  <span className="text-primary-400 font-mono text-sm">{item.step}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
               </div>
-              <div className="text-5xl mb-4 mt-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Themes Section */}
-      <section id="themes" className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              ⭐ Premium Collection
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Style</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              From elegant classics to fun pop culture themes. Each one creates a unique artistic style for your family tree.
-            </p>
-          </div>
-
-          {/* Free Themes */}
-          <div className="mb-12">
-            <h3 className="text-xl font-semibold mb-6 text-center">Free Themes</h3>
-            <div className="grid md:grid-cols-4 gap-6">
-              {[
-                { name: 'Classic', emoji: '📜', desc: 'Elegant parchment style' },
-                { name: 'Modern', emoji: '✨', desc: 'Clean, minimal design' },
-                { name: 'Vintage', emoji: '🎞️', desc: 'Art Deco elegance' },
-                { name: 'Minimalist', emoji: '⚪', desc: 'Ultra-simple beauty' },
-              ].map((theme) => (
-                <div
-                  key={theme.name}
-                  className="bg-surface-50 rounded-2xl p-6 text-center border-2 border-surface-200 hover:border-primary-300 transition-colors"
-                >
-                  <div className="text-4xl mb-3">{theme.emoji}</div>
-                  <h4 className="font-semibold text-lg">{theme.name}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{theme.desc}</p>
-                  <span className="inline-block mt-3 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                    Free
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Premium Themes */}
-          <div>
-            <h3 className="text-xl font-semibold mb-6 text-center">Premium Themes</h3>
-            <div className="grid md:grid-cols-4 gap-6">
-              {[
-                { name: 'Game of Thrones', emoji: '🐉', color: 'from-amber-900 to-amber-700', desc: 'Medieval house lineage' },
-                { name: 'The Simpsons', emoji: '🍩', color: 'from-yellow-400 to-yellow-500', desc: 'Springfield cartoon fun' },
-                { name: 'Harry Potter', emoji: '⚡', color: 'from-purple-900 to-purple-700', desc: 'Magical wizarding style' },
-                { name: 'Peaky Blinders', emoji: '🎩', color: 'from-gray-900 to-gray-700', desc: '1920s noir aesthetic' },
-              ].map((theme) => (
-                <div
-                  key={theme.name}
-                  className={`bg-gradient-to-br ${theme.color} rounded-2xl p-6 text-white text-center cursor-pointer hover:scale-105 transition-transform shadow-lg`}
-                >
-                  <div className="text-4xl mb-3">{theme.emoji}</div>
-                  <h4 className="font-semibold text-lg">{theme.name}</h4>
-                  <p className="text-sm text-white/80 mt-1">{theme.desc}</p>
-                  <span className="inline-block mt-3 text-sm bg-white/20 px-3 py-1 rounded-full font-medium">
-                    $4.99
-                  </span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Why Choose AI Family Tree?</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            { icon: '🎨', title: 'Unique AI Art', desc: 'Every family tree is a one-of-a-kind artwork created by advanced AI' },
-            { icon: '📸', title: 'Photo Integration', desc: 'Your real family photos are composited into the generated artwork' },
-            { icon: '⚡', title: 'Instant Generation', desc: 'Get your beautiful family tree in about 30 seconds' },
-            { icon: '💾', title: 'Cloud Saved', desc: 'Your trees are saved to your account and accessible anywhere' },
-            { icon: '📥', title: 'High-Quality Export', desc: 'Download print-ready images perfect for framing' },
-            { icon: '🔄', title: 'Unlimited Regeneration', desc: 'Not happy? Regenerate for a different artistic interpretation' },
-          ].map((feature) => (
-            <div key={feature.title} className="flex gap-4">
-              <div className="text-3xl flex-shrink-0">{feature.icon}</div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
-                <p className="text-gray-600">{feature.desc}</p>
+      <section className="py-20 px-6 border-t border-surface-800">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              { icon: '01', title: 'Photo Integration', desc: 'Real photos composited into artistic scenes' },
+              { icon: '02', title: 'HD Quality', desc: 'Print-ready 2K resolution output' },
+              { icon: '03', title: '10+ Themes', desc: 'Classic, fantasy, nature, and more' },
+              { icon: '04', title: 'Fast Generation', desc: 'Your artwork ready in 30 seconds' },
+            ].map((feature) => (
+              <div key={feature.icon} className="flex gap-4 p-5 rounded-xl bg-surface-900 border border-surface-800">
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center">
+                  <span className="text-primary-400 font-mono text-xs">{feature.icon}</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-medium mb-1">{feature.title}</h3>
+                  <p className="text-gray-500 text-sm">{feature.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="bg-surface-100 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Simple Pricing</h2>
-          <p className="text-gray-600 text-center mb-12">Start free, upgrade when you need more</p>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Tier */}
-            <div className="card text-center">
-              <h3 className="text-2xl font-bold mb-2">Free</h3>
-              <p className="text-gray-600 mb-6">Perfect for trying it out</p>
-              <div className="text-4xl font-bold mb-6">$0</div>
-              <ul className="space-y-3 text-left mb-8">
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> 2 free generations
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> All free themes
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Basic export (watermarked)
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Local save
-                </li>
-              </ul>
-              <Link to="/builder" className="btn-secondary w-full">
-                Get Started Free
-              </Link>
-            </div>
-
-            {/* Premium Tier */}
-            <div className="card text-center border-2 border-primary-500 relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                Most Popular
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Premium</h3>
-              <p className="text-gray-600 mb-6">For serious family historians</p>
-              <div className="text-4xl font-bold mb-2">$9.99<span className="text-lg text-gray-500">/mo</span></div>
-              <p className="text-sm text-gray-500 mb-6">or purchase themes individually for $4.99 each</p>
-              <ul className="space-y-3 text-left mb-8">
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> <strong>Unlimited</strong> generations
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> All premium themes included
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> No watermark exports
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Cloud sync & backup
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Priority generation
-                </li>
-              </ul>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="btn-primary w-full"
-              >
-                Upgrade to Premium
-              </button>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Create Your Family Tree?</h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Join families who have preserved their legacy with beautiful AI-generated artwork.
+      <section className="py-24 px-6 border-t border-surface-800">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">Ready to Begin?</h2>
+          <p className="text-gray-500 mb-8">
+            Create a beautiful family tree that captures your heritage.
           </p>
-          <Link to="/builder" className="btn-primary text-lg px-12 py-4">
-            Start Building Now — It's Free
+          <Link to="/builder" className="inline-flex items-center gap-2 btn-primary px-8 py-4">
+            Start Creating
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🌳</span>
-                <span className="font-serif text-xl font-bold text-white">AI Family Tree</span>
-              </div>
-              <p className="text-sm">
-                Transform your family history into beautiful AI-generated artwork.
-              </p>
+      <footer className="py-8 px-6 border-t border-surface-800">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+              <svg className="w-4 h-4 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
+              </svg>
             </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/builder" className="hover:text-white transition-colors">Create Tree</Link></li>
-                <li><Link to="/gallery" className="hover:text-white transition-colors">Gallery</Link></li>
-                <li><a href="#themes" className="hover:text-white transition-colors">Themes</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4">Support</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@aifamilytree.com" className="hover:text-white transition-colors">Contact Us</a></li>
-              </ul>
-            </div>
+            <span className="text-gray-500 text-sm">Heritage</span>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>© 2026 AI Family Tree Builder. Built with ❤️</p>
+          <div className="flex items-center gap-6 text-sm text-gray-500">
+            <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
+            <a href="mailto:support@heritage.com" className="hover:text-gray-300 transition-colors">Contact</a>
           </div>
         </div>
       </footer>

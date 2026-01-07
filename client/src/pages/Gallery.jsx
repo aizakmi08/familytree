@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useFamilyStore } from '../store/familyStore';
@@ -11,29 +11,30 @@ export default function Gallery() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Combine local generations with any from the store
   const allGenerations = generations || [];
 
   return (
-    <div className="min-h-screen bg-surface-50">
+    <div className="min-h-screen bg-surface-950">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="glass border-b border-surface-800 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl">🌳</span>
-              <span className="font-serif text-xl font-bold text-gray-900">AI Family Tree</span>
+            <Link to="/" className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                <svg className="w-5 h-5 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
+                </svg>
+              </div>
+              <span className="font-serif text-lg font-semibold text-white">Heritage</span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link to="/builder" className="btn-primary">
-                Create New
+              <Link to="/builder" className="btn-primary text-sm py-2">
+                Create
               </Link>
-              {isAuthenticated ? (
-                <span className="text-sm text-gray-600">{user?.name}</span>
-              ) : (
+              {!isAuthenticated && (
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="btn-secondary text-sm"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Sign In
                 </button>
@@ -44,73 +45,58 @@ export default function Gallery() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Family Trees</h1>
-          <p className="text-gray-500">
-            {allGenerations.length} generation{allGenerations.length !== 1 ? 's' : ''}
+          <h1 className="text-2xl font-bold text-white">My Creations</h1>
+          <p className="text-gray-500 text-sm">
+            {allGenerations.length} item{allGenerations.length !== 1 ? 's' : ''}
           </p>
         </div>
 
         {allGenerations.length === 0 ? (
-          /* Empty State */
           <div className="card text-center py-16">
-            <div className="text-6xl mb-4">🖼️</div>
-            <h2 className="text-2xl font-bold mb-2">No trees yet</h2>
-            <p className="text-gray-600 mb-6">
-              Create your first AI-generated family tree!
-            </p>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-800 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-white mb-2">No creations yet</h2>
+            <p className="text-gray-500 mb-6">Generate your first family tree</p>
             <Link to="/builder" className="btn-primary">
-              Create Your First Tree
+              Create
             </Link>
           </div>
         ) : (
-          /* Gallery Grid */
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {allGenerations.map((generation, index) => (
               <div
                 key={index}
                 onClick={() => setSelectedImage(generation.imageUrl)}
-                className="card-hover cursor-pointer overflow-hidden"
+                className="group relative aspect-square rounded-xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-surface-600 cursor-pointer transition-all image-protection-container"
+                onContextMenu={(e) => e.preventDefault()}
               >
-                <div className="relative aspect-square bg-gray-100">
-                  <img
-                    src={generation.imageUrl}
-                    alt={`Family Tree - ${generation.theme}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-4">
-                    <div className="text-white">
-                      <p className="font-semibold capitalize">{generation.theme} Theme</p>
-                      <p className="text-sm text-white/80">
-                        {new Date(generation.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
+                <img
+                  src={generation.imageUrl}
+                  alt={`Family Tree - ${generation.theme}`}
+                  className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 protected-image"
+                  draggable="false"
+                  onDragStart={(e) => e.preventDefault()}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent pointer-events-none" />
+                {/* Preview badge on thumbnails */}
+                {!generation.isPaid && (
+                  <div className="absolute top-2 right-2 bg-surface-950/80 text-xs text-gray-400 px-2 py-1 rounded">
+                    PREVIEW
                   </div>
-                </div>
-                <div className="p-4">
-                  <p className="font-medium capitalize">{generation.theme} Theme</p>
-                  <p className="text-sm text-gray-500">
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
+                  <p className="text-white font-medium capitalize">{generation.theme}</p>
+                  <p className="text-sm text-gray-400">
                     {new Date(generation.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Sign in prompt for guests */}
-        {!isAuthenticated && allGenerations.length > 0 && (
-          <div className="mt-8 card bg-primary-50 border-primary-200 text-center">
-            <p className="text-primary-800 mb-4">
-              <strong>Sign in</strong> to save your family trees to the cloud and access them anywhere!
-            </p>
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="btn-primary"
-            >
-              Sign In to Save
-            </button>
           </div>
         )}
       </main>

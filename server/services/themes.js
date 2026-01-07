@@ -1,198 +1,268 @@
-// Server-side theme definitions (mirrors client themes)
+// Server-side theme definitions
+// All themes are free - payment is only for download ($2.99)
+
+// Base instructions for all themes - ensures professional, clean output
+const BASE_INSTRUCTIONS = `
+CRITICAL LAYOUT REQUIREMENTS:
+- Create a CLEAR, PROFESSIONAL family tree diagram
+- Each person gets ONE large, prominent portrait frame (NO small duplicates)
+- Arrange in CLEAR GENERATIONS: oldest at top, youngest at bottom
+- Use THICK, CLEAR connecting lines between related people
+- Names must be LARGE and READABLE, placed directly below each portrait
+- Birth years in smaller text under the name
+- Plenty of spacing between portraits - NO overlapping
+- Portrait frames should be at least 150px equivalent in the final image
+- Maximum 4 people per row for readability
+- Spouses should be side by side on the same level
+- Children should be centered below their parents
+
+PORTRAIT STYLE (VERY IMPORTANT):
+- Create ILLUSTRATED/ARTISTIC portraits that match the theme's art style
+- DO NOT use photo-realistic images - ILLUSTRATE/DRAW each person
+- Use reference photos only to capture likeness, then render in the theme's style
+- All portraits should look hand-drawn or digitally illustrated
+- Portraits must be stylistically consistent with the overall artwork
+`;
 
 export const themes = {
   classic: {
     id: 'classic',
     name: 'Classic',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Traditional family tree on elegant parchment paper',
-    promptTemplate: `Create a classic family tree diagram on aged cream-colored parchment paper with an elegant vintage design.
+    promptTemplate: `Create a PROFESSIONAL family tree diagram on elegant aged parchment paper.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Traditional hand-drawn calligraphy style for names
-- Ornate decorative borders with floral and vine motifs
-- Warm sepia and cream color palette
-- Connecting lines made of elegant curved branches
-- {{memberCount}} circular portrait frames with decorative gold borders, each labeled with the person's name
-- Soft shadows and aged paper texture
-- Classic serif typography for any text
-- Layout should flow from top (oldest generation) to bottom (youngest)`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Warm cream/sepia parchment background with subtle aged texture
+- Large CIRCULAR portrait frames with ornate GOLD borders
+- Elegant curved branch lines connecting family members
+- Classic serif typography for names (large, readable)
+- Decorative corner flourishes but NO clutter in the main area
+- Soft warm lighting, museum-quality presentation
+- Each of the {{memberCount}} people gets exactly ONE prominent portrait frame`,
   },
 
   modern: {
     id: 'modern',
     name: 'Modern',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Clean, contemporary design with minimalist aesthetics',
-    promptTemplate: `Create a modern, minimalist family tree with a clean contemporary design.
+    promptTemplate: `Create a CLEAN, MODERN family tree with contemporary minimalist design.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Clean white background with subtle geometric patterns
-- Sans-serif typography, modern and readable
-- Circular profile placeholders with thin borders
-- {{memberCount}} portrait spots in a clean grid layout
-- Connecting lines are thin, straight with right angles
-- Accent colors: soft teal and coral
-- Plenty of white space
-- Names in clean, modern typography below each portrait
-- Subtle drop shadows for depth`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Pure white background with subtle geometric accent patterns
+- Large CIRCULAR portraits with thin elegant borders
+- Clean straight connecting lines (not curved)
+- Modern sans-serif typography (Helvetica/Arial style)
+- Accent colors: soft teal and warm coral touches
+- Generous white space between elements
+- Drop shadows for subtle depth
+- Each of the {{memberCount}} people gets exactly ONE clean portrait frame`,
   },
 
   vintage: {
     id: 'vintage',
     name: 'Vintage',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Nostalgic 1920s art deco inspired design',
-    promptTemplate: `Create a vintage Art Deco style family tree inspired by the 1920s aesthetic.
+    promptTemplate: `Create a SOPHISTICATED Art Deco family tree in 1920s vintage style.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Rich burgundy, gold, and cream color palette
-- Art Deco geometric patterns and borders
-- Ornate gold frames around each portrait
-- {{memberCount}} oval portrait frames with decorative Art Deco borders
-- Elegant serif typography with gold accents
-- Geometric connecting lines with chevron patterns
-- Aged paper texture with subtle grain
-- Names in elegant uppercase lettering`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Rich burgundy and gold color palette on cream background
+- Large OVAL portrait frames with Art Deco geometric borders
+- Geometric connecting lines with chevron accents
+- Elegant serif typography with gold coloring
+- Art Deco corner decorations and borders
+- Subtle aged paper texture
+- Each of the {{memberCount}} people gets exactly ONE elegant portrait frame`,
   },
 
   minimalist: {
     id: 'minimalist',
     name: 'Minimalist',
-    category: 'free',
-    price: 0,
+    category: 'standard',
     description: 'Ultra-simple black and white design',
-    promptTemplate: `Create an ultra-minimalist family tree with maximum simplicity.
+    promptTemplate: `Create an ULTRA-CLEAN minimalist family tree with maximum clarity.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Pure white background
-- Simple black line drawings
-- {{memberCount}} simple circular frames for portraits
-- Thin single-weight lines for connections
-- Clean sans-serif typography
-- No decorative elements
-- Names in lowercase, small text
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Pure white background, no texture
+- Simple large CIRCULAR frames with thin black borders
+- Single-weight thin black lines for connections
+- Clean sans-serif typography in black
+- Zero decorative elements - only portraits, names, and lines
 - Maximum negative space
-- Subtle gray tones only`,
+- Each of the {{memberCount}} people gets exactly ONE simple portrait frame`,
   },
 
   gameOfThrones: {
     id: 'gameOfThrones',
     name: 'Game of Thrones',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Medieval house lineage chart inspired by Westeros',
-    promptTemplate: `Create a medieval family tree on aged parchment paper in the style of Game of Thrones house lineage charts.
+    promptTemplate: `Create a MAJESTIC medieval family tree like a Westeros noble house lineage chart.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Aged parchment with burnt edges and wax seal marks
-- Medieval calligraphy style for all text
-- Golden borders with dragon, wolf, and lion motifs
-- {{memberCount}} circular portrait frames with ornate medieval borders featuring house sigil decorations
-- Connecting lines made of ornate iron chains or vines
-- Sepia and gold color palette with red accents
-- Heraldic shields and banners
-- Gothic architectural elements
-- Names written in medieval script
-- Faded map elements in background`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Aged parchment with subtle map elements in background
+- Large CIRCULAR portrait frames with ornate medieval GOLD borders
+- Thick decorative chain or vine connections between family members
+- Medieval calligraphy style names (but still readable)
+- Heraldic shield at the top with family name
+- Sepia and gold colors with deep red accents
+- Dragon, wolf, or lion decorative elements in corners only
+- Each of the {{memberCount}} people gets exactly ONE noble portrait frame`,
   },
 
   simpsons: {
     id: 'simpsons',
     name: 'The Simpsons',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Springfield-style cartoon family tree',
-    promptTemplate: `Create a colorful, cartoon-style family tree inspired by The Simpsons animated series.
+    promptTemplate: `Create a FUN cartoon family tree in The Simpsons animated style.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Bright yellow, blue, and pink color palette
-- Cartoon illustration style with bold black outlines
-- {{memberCount}} cartoon-style portrait frames shaped like TV screens
-- Playful, bouncy connecting lines
-- Springfield-inspired background elements (donuts, nuclear symbols, clouds)
-- Comic sans or cartoon-style typography
-- Fun, exaggerated proportions
-- Each portrait frame has a colorful border
-- Names in speech bubbles or cartoon labels
-- Cheerful, family-friendly aesthetic`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Bright yellow background with blue sky gradient
+- Large TV-SCREEN shaped portrait frames with colorful borders
+- Playful bouncy connection lines
+- Bold cartoon typography (rounded, fun)
+- Springfield cloud and donut decorations in corners only
+- Cheerful, vibrant colors throughout
+- Each of the {{memberCount}} people gets exactly ONE cartoon portrait frame`,
   },
 
   harryPotter: {
     id: 'harryPotter',
     name: 'Harry Potter',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: 'Magical wizarding world family tree',
-    promptTemplate: `Create a magical family tree in the style of Harry Potter wizarding world ancestry charts.
+    promptTemplate: `Create a MAGICAL family tree like a Hogwarts wizarding ancestry chart.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Ancient magical parchment with glowing edges
-- Dark purple, gold, and emerald color palette
-- {{memberCount}} ornate portrait frames with magical golden frames like moving paintings
-- Connecting lines that look like magical golden vines or light trails
-- Hogwarts-inspired Gothic elements
-- Star constellations in the background
-- Mystical symbols and runes as decorative elements
-- Names in elegant magical script
-- Subtle sparkles and magical effects
-- Candle-lit atmosphere with warm glow`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Deep purple/midnight blue parchment with starry atmosphere
+- Large ORNATE golden portrait frames (like moving paintings)
+- Magical golden vine or light trail connections
+- Elegant magical script typography (readable)
+- Subtle star constellations in background
+- Warm candlelit glow effect
+- Magical sparkles as subtle accents only
+- Each of the {{memberCount}} people gets exactly ONE magical portrait frame`,
   },
 
   peakyBlinders: {
     id: 'peakyBlinders',
     name: 'Peaky Blinders',
-    category: 'premium',
-    price: 4.99,
+    category: 'fun',
     description: '1920s Birmingham gangster aesthetic',
-    promptTemplate: `Create a gritty, noir family tree inspired by Peaky Blinders 1920s Birmingham aesthetic.
+    promptTemplate: `Create a DRAMATIC noir family tree in 1920s Peaky Blinders style.
 
 FAMILY STRUCTURE:
 {{familyStructure}}
 
-STYLE GUIDELINES:
-- Dark, moody atmosphere with industrial textures
-- Black, charcoal gray, and gold color palette
-- {{memberCount}} portrait frames styled like vintage police mugshots or formal 1920s photographs
-- Connecting lines made of razor blade motifs or chain links
-- Brick wall texture in background
-- Art Deco typography with gold accents
-- Smoke and fog atmospheric effects
-- Flat cap and newsboy style decorative elements
-- Names in bold, industrial typeface
-- Film noir dramatic lighting
-- Vintage newspaper clipping aesthetics`,
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Dark moody background with industrial brick texture
+- Large RECTANGULAR portrait frames like vintage photographs
+- Strong geometric gold connecting lines
+- Bold industrial typography in gold/white
+- Film noir dramatic lighting with shadows
+- Art Deco gold accents
+- Smoke/fog subtle atmosphere
+- Each of the {{memberCount}} people gets exactly ONE dramatic portrait frame`,
+  },
+
+  botanical: {
+    id: 'botanical',
+    name: 'Botanical Garden',
+    category: 'nature',
+    description: 'Beautiful botanical illustration style',
+    promptTemplate: `Create a BEAUTIFUL botanical family tree with nature illustrations.
+
+FAMILY STRUCTURE:
+{{familyStructure}}
+
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Soft cream background like vintage botanical prints
+- Large CIRCULAR portrait frames wrapped in delicate leaf wreaths
+- Graceful vine tendrils as connection lines
+- Elegant cursive typography in forest green
+- Watercolor flowers and leaves as subtle decorations
+- Muted greens, soft pinks, cream colors
+- Pressed flower aesthetic
+- Each of the {{memberCount}} people gets exactly ONE botanical portrait frame`,
+  },
+
+  celestial: {
+    id: 'celestial',
+    name: 'Celestial',
+    category: 'nature',
+    description: 'Mystical stars and moon theme',
+    promptTemplate: `Create a MYSTICAL celestial family tree with cosmic elements.
+
+FAMILY STRUCTURE:
+{{familyStructure}}
+
+${BASE_INSTRUCTIONS}
+
+VISUAL STYLE:
+- Deep midnight blue/purple gradient background
+- Large CIRCULAR portrait frames with gold constellation borders
+- Starlight trail connecting lines in gold/silver
+- Elegant gold typography
+- Moon phases in top corners
+- Subtle nebula and cosmic dust textures
+- Twinkling star accents (not overwhelming)
+- Each of the {{memberCount}} people gets exactly ONE celestial portrait frame`,
+  },
+
+  custom: {
+    id: 'custom',
+    name: 'Custom Theme',
+    category: 'custom',
+    description: 'User-defined custom style',
+    promptTemplate: `{{customPrompt}}`,
   },
 };
 
 export const getTheme = (themeId) => themes[themeId] || themes.classic;
 
-export const isPremiumTheme = (themeId) => {
-  const theme = themes[themeId];
-  return theme?.category === 'premium';
-};
+// All themes are now free
+export const isPremiumTheme = () => false;
 
+export const DOWNLOAD_PRICE = 2.99;

@@ -1,23 +1,28 @@
 // Generation Route - Handles AI family tree generation
+// All themes are FREE - payment is only for download/share ($2.99)
 
 import express from 'express';
-import { buildPrompt } from '../services/promptBuilder.js';
+import { buildPrompt, buildContinuationPrompt } from '../services/promptBuilder.js';
 import { generateImage, isConfigured as isKieAIConfigured } from '../services/kieai.js';
-import { saveGeneratedImage, addWatermark, isConfigured as isCloudinaryConfigured } from '../services/compositor.js';
-import { isPremiumTheme } from '../services/themes.js';
+import {
+  saveGeneratedImage,
+  addWatermark,
+  isConfigured as isCloudinaryConfigured,
+  uploadMemberPhotos,
+} from '../services/compositor.js';
 import { optionalAuth } from '../middleware/auth.js';
-import User from '../models/User.js';
-import FamilyTree from '../models/FamilyTree.js';
 
 const router = express.Router();
 
 /**
  * POST /api/generate
- * Generate a family tree image
+ * Generate a family tree image - FREE for all users
+ * All themes are free, watermark added for preview
+ * Payment ($2.99) required only for download/share
  */
 router.post('/', optionalAuth, async (req, res) => {
   try {
-    const { members, relationships, theme, treeName } = req.body;
+    const { members, relationships, theme, name: treeName, customPrompt } = req.body;
 
     // Validate input
     if (!members || members.length < 2) {
@@ -28,119 +33,222 @@ router.post('/', optionalAuth, async (req, res) => {
       return res.status(400).json({ error: 'At least 1 relationship is required' });
     }
 
+    // Validate custom theme has a prompt
+    if (theme === 'custom' && !customPrompt) {
+      return res.status(400).json({ error: 'Custom theme requires a style description' });
+    }
+
     // Check if Kie AI is configured
     if (!isKieAIConfigured()) {
-      return res.status(503).json({ 
+      return res.status(503).json({
         error: 'AI generation is not configured. Please set KIE_AI_API_KEY.',
         code: 'KIE_AI_NOT_CONFIGURED'
       });
     }
 
-    // Check premium theme access
-    if (isPremiumTheme(theme)) {
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: 'Please sign in to use premium themes',
-          code: 'AUTH_REQUIRED'
-        });
-      }
-
-      const user = await User.findById(req.user.userId);
-      if (!user.purchasedThemes.includes(theme) && !user.isPremium) {
-        return res.status(403).json({ 
-          error: 'This premium theme requires purchase',
-          code: 'THEME_NOT_PURCHASED'
-        });
-      }
-    }
-
-    // Check generation credits for non-premium users
-    if (req.user) {
-      const user = await User.findById(req.user.userId);
-      if (!user.isPremium && user.generationCredits <= 0) {
-        return res.status(403).json({
-          error: 'No generation credits remaining. Upgrade to premium for unlimited generations.',
-          code: 'NO_CREDITS'
-        });
-      }
-    }
+    // All themes are now FREE - no premium checks needed
+    // All users (including guests) can generate unlimited family trees
 
     console.log(`🌳 Generating family tree for ${members.length} members with theme: ${theme}`);
+    
+    // Log members with photos
+    const membersWithPhotos = members.filter(m => m.photoUrl);
+    console.log(`📸 Found ${membersWithPhotos.length} members with photos:`, 
+      membersWithPhotos.map(m => `${m.name} (${m.photoUrl?.substring(0, 50)}...)`));
 
-    // Build the prompt
-    const prompt = buildPrompt({ members, relationships }, theme);
+    // Step 1: Upload member photos to Cloudinary (if any)
+    let uploadedPhotos = [];
+    if (isCloudinaryConfigured()) {
+      try {
+        uploadedPhotos = await uploadMemberPhotos(members);
+        console.log(`✅ Uploaded ${uploadedPhotos.length} photos to Cloudinary:`, 
+          uploadedPhotos.map(p => `${p.memberName} -> ${p.photoUrl.substring(0, 60)}...`));
+      } catch (error) {
+        console.error('❌ Photo upload error (continuing without photos):', error.message);
+        console.error('Error stack:', error.stack);
+        // Continue generation even if photo upload fails
+      }
+    } else {
+      console.warn('⚠️ Cloudinary not configured - photos will not be uploaded or used');
+    }
 
-    // Generate image with Kie AI
+    // Step 2: Build the prompt with photo information, tree name, and custom prompt (if any)
+    const familyTreeName = treeName || 'Family Tree';
+    const prompt = buildPrompt({ members, relationships }, theme, uploadedPhotos, customPrompt, familyTreeName);
+
+    // Step 3: Prepare image inputs for Kie AI (if we have photos)
+    // Kie AI has a limit of 8 image inputs maximum
+    // Priority: oldest generation first (people without parents in the tree)
+    const MAX_IMAGE_INPUTS = 8;
+
+    // Sort photos by generation - prioritize ancestors (those with no parents in tree)
+    const childIds = new Set(relationships.filter(r => r.type === 'parent').map(r => r.to));
+    const sortedPhotos = [...uploadedPhotos].sort((a, b) => {
+      const aIsChild = childIds.has(a.memberId);
+      const bIsChild = childIds.has(b.memberId);
+      // Ancestors (non-children) come first
+      if (!aIsChild && bIsChild) return -1;
+      if (aIsChild && !bIsChild) return 1;
+      return 0;
+    });
+
+    // Split photos into batches if more than 8
+    const firstBatchPhotos = sortedPhotos.slice(0, MAX_IMAGE_INPUTS);
+    const remainingPhotos = sortedPhotos.slice(MAX_IMAGE_INPUTS);
+    const needsMultiPass = remainingPhotos.length > 0;
+
+    if (needsMultiPass) {
+      console.log(`📸 Multi-pass generation required: ${sortedPhotos.length} photos total`);
+      console.log(`   Pass 1: ${firstBatchPhotos.map(p => p.memberName).join(', ')}`);
+      console.log(`   Pass 2: ${remainingPhotos.map(p => p.memberName).join(', ')}`);
+    }
+
+    let imageInputs = firstBatchPhotos.map(p => p.photoUrl);
+
+    if (imageInputs.length > 0) {
+      console.log(`🎨 Pass 1: ${imageInputs.length} photos to Kie AI`);
+    } else {
+      console.log('⚠️ No photos to pass to Kie AI - generation will use text prompt only');
+    }
+
+    // Step 4: Generate image with Kie AI (First Pass)
     // Use 2K resolution and 1:1 aspect ratio for family trees
-    const { url: generatedUrl, taskId } = await generateImage(prompt, {
+    const generationOptions = {
       model: 'nano-banana-pro',
       aspectRatio: '1:1',
       resolution: '2K',
       outputFormat: 'png',
-    });
+    };
 
-    // Save to Cloudinary (with watermark for free users)
+    // Add image inputs if we have photos
+    if (imageInputs.length > 0) {
+      generationOptions.imageInput = imageInputs;
+      console.log('📤 Pass 1: Sending to Kie AI with image inputs:', imageInputs.map(url => url.substring(0, 60) + '...'));
+    }
+
+    console.log('🚀 Starting Kie AI generation (Pass 1)...');
+    let { url: generatedUrl } = await generateImage(prompt, generationOptions);
+    console.log('✅ Pass 1 complete, received image URL:', generatedUrl.substring(0, 60) + '...');
+
+    // Step 5: Multi-pass generation for remaining photos (if needed)
+    let passesCompleted = 1;
+
+    if (needsMultiPass) {
+      console.log(`🔄 Starting Pass 2 to add ${remainingPhotos.length} more members...`);
+
+      // Save the first pass image to Cloudinary so we can use it as input
+      let firstPassUrl = generatedUrl;
+      if (isCloudinaryConfigured()) {
+        const saved = await saveGeneratedImage(generatedUrl);
+        firstPassUrl = saved.url;
+        console.log('📁 First pass saved to Cloudinary for reference');
+      }
+
+      // Build continuation prompt for adding remaining members
+      const remainingMemberNames = remainingPhotos.map(p => p.memberName);
+      const continuationPrompt = buildContinuationPrompt(
+        { members, relationships },
+        theme,
+        remainingMemberNames,
+        customPrompt
+      );
+
+      // Prepare second pass with: first pass image + remaining photos
+      // First pass image counts as 1, so we can add up to 7 more photos
+      const maxRemainingPhotos = MAX_IMAGE_INPUTS - 1;
+      const secondBatchPhotos = remainingPhotos.slice(0, maxRemainingPhotos);
+      const stillRemaining = remainingPhotos.slice(maxRemainingPhotos);
+
+      if (stillRemaining.length > 0) {
+        console.log(`⚠️ Note: ${stillRemaining.length} photos still won't fit (${stillRemaining.map(p => p.memberName).join(', ')})`);
+        console.log('   Consider smaller family groups or fewer photos per person');
+      }
+
+      const secondPassInputs = [firstPassUrl, ...secondBatchPhotos.map(p => p.photoUrl)];
+
+      const secondPassOptions = {
+        model: 'nano-banana-pro',
+        aspectRatio: '1:1',
+        resolution: '2K',
+        outputFormat: 'png',
+        imageInput: secondPassInputs,
+      };
+
+      console.log('📤 Pass 2: Adding members:', secondBatchPhotos.map(p => p.memberName).join(', '));
+
+      const secondResult = await generateImage(continuationPrompt, secondPassOptions);
+      generatedUrl = secondResult.url;
+      passesCompleted = 2;
+
+      console.log('✅ Pass 2 complete! All available photos integrated');
+    }
+
+    // Step 6: Use the AI-generated image directly
+    // The AI uses the uploaded photos as reference to generate integrated portraits
+    // No manual photo overlay needed - this keeps the design clean and professional
+    let finalImageUrl = generatedUrl;
+    console.log(`✅ Using AI-generated image directly (${passesCompleted} pass${passesCompleted > 1 ? 'es' : ''} completed)`);
+
+    // Step 7: Save to Cloudinary with watermark (all previews are watermarked)
+    // Users pay $2.99 to download/share WITHOUT watermark
     let finalResult;
     if (isCloudinaryConfigured()) {
-      if (req.user) {
-        const user = await User.findById(req.user.userId);
-        if (user.isPremium) {
-          finalResult = await saveGeneratedImage(generatedUrl);
-        } else {
-          finalResult = await addWatermark(generatedUrl);
-        }
-      } else {
-        finalResult = await addWatermark(generatedUrl);
+      try {
+        // All generated previews get a watermark with the tree name
+        console.log('🎨 Adding watermark to preview...');
+        finalResult = await addWatermark(finalImageUrl, 'PREVIEW', familyTreeName);
+
+        // Also save the clean version for paid downloads
+        console.log('💾 Saving clean version for downloads...');
+        const cleanVersion = await saveGeneratedImage(finalImageUrl);
+        finalResult.cleanUrl = cleanVersion.url;
+      } catch (cloudinaryError) {
+        console.error('⚠️ Cloudinary operations failed, using Kie AI URL as fallback:', cloudinaryError.message);
+        // Fallback: use the Kie AI URL directly
+        // Note: Kie AI URLs are temporary and may expire, but this allows the user to see the result
+        finalResult = {
+          url: finalImageUrl,
+          cleanUrl: finalImageUrl,
+          warning: 'Image saved to temporary storage. Please regenerate if the image expires.'
+        };
       }
     } else {
       // Use Kie AI URL directly if Cloudinary not configured
-      finalResult = { url: generatedUrl };
+      finalResult = { url: finalImageUrl, cleanUrl: finalImageUrl };
     }
 
-    // Deduct credit for authenticated non-premium users
-    if (req.user) {
-      const user = await User.findById(req.user.userId);
-      if (!user.isPremium && user.generationCredits > 0) {
-        user.generationCredits -= 1;
-        await user.save();
-      }
+    // No credits to deduct - all generations are FREE
+    // MongoDB operations are optional for guest users
 
-      // Save to user's gallery
-      let tree = await FamilyTree.findOne({ userId: req.user.userId });
-      if (!tree) {
-        tree = new FamilyTree({
-          userId: req.user.userId,
-          name: treeName || 'My Family Tree',
-          theme,
-          members: members.map(m => ({
-            clientId: m.id,
-            name: m.name,
-            photoUrl: m.photoUrl,
-            birthYear: m.birthYear,
-            deathYear: m.deathYear,
-          })),
-          relationships: relationships.map(r => ({
-            from: r.from,
-            to: r.to,
-            type: r.type,
-          })),
-        });
-      }
+    // Build photo usage metadata
+    const photoMetadata = {
+      total: uploadedPhotos.length,
+      pass1: firstBatchPhotos.map(p => p.memberName),
+      pass2: needsMultiPass ? remainingPhotos.slice(0, MAX_IMAGE_INPUTS - 1).map(p => p.memberName) : [],
+      notIncluded: needsMultiPass && remainingPhotos.length > MAX_IMAGE_INPUTS - 1
+        ? remainingPhotos.slice(MAX_IMAGE_INPUTS - 1).map(p => p.memberName)
+        : [],
+    };
 
-      tree.generations.push({
-        imageUrl: finalResult.url,
-        prompt: prompt,
-        theme,
-      });
-
-      await tree.save();
-    }
-
-    res.json({
+    const response = {
       success: true,
       imageUrl: finalResult.url,
-      message: 'Family tree generated successfully!',
-    });
+      cleanUrl: finalResult.cleanUrl, // For paid downloads
+      message: needsMultiPass
+        ? `Family tree generated in ${passesCompleted} passes! All ${uploadedPhotos.length} photos integrated.`
+        : 'Family tree generated successfully!',
+      photosUsed: uploadedPhotos.length,
+      photoMetadata,
+      passesCompleted,
+      isPaid: false, // Indicates this is a preview (watermarked)
+    };
+
+    // Add warning if using temporary storage
+    if (finalResult.warning) {
+      response.warning = finalResult.warning;
+    }
+
+    res.json(response);
 
   } catch (error) {
     console.error('Generation error:', error);

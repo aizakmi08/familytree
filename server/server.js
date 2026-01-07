@@ -28,10 +28,18 @@ app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+// MongoDB connection (optional - app works without it for guest users)
+const MONGODB_URI = process.env.MONGODB_URI;
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI)
+    .then(() => console.log('✅ MongoDB connected'))
+    .catch((err) => {
+      console.warn('⚠️ MongoDB connection failed:', err.message);
+      console.warn('⚠️ App will continue without database - guest mode only');
+    });
+} else {
+  console.warn('⚠️ MONGODB_URI not set - running in guest mode (no user accounts)');
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

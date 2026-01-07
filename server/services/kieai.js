@@ -57,8 +57,11 @@ export async function createTask(prompt, options = {}) {
 
     const data = await response.json();
 
+    console.log('📥 Kie AI response:', JSON.stringify(data, null, 2));
+
     if (data.code !== 200) {
-      throw new Error(data.message || 'Failed to create generation task');
+      console.error('❌ Kie AI error response:', data);
+      throw new Error(data.message || data.msg || `API error code: ${data.code}`);
     }
 
     console.log('✅ Task created:', data.data.taskId);
@@ -144,11 +147,11 @@ export async function queryTask(taskId) {
 /**
  * Poll task until completion
  * @param {string} taskId - The task ID
- * @param {number} maxWaitTime - Maximum time to wait in milliseconds (default: 120000 = 2 minutes)
+ * @param {number} maxWaitTime - Maximum time to wait in milliseconds (default: 300000 = 5 minutes)
  * @param {number} pollInterval - Polling interval in milliseconds (default: 2000 = 2 seconds)
  * @returns {Promise<{url: string, taskId: string}>}
  */
-export async function pollTaskUntilComplete(taskId, maxWaitTime = 120000, pollInterval = 2000) {
+export async function pollTaskUntilComplete(taskId, maxWaitTime = 300000, pollInterval = 2000) {
   const startTime = Date.now();
 
   while (Date.now() - startTime < maxWaitTime) {
@@ -195,4 +198,5 @@ export function isConfigured() {
   const key = process.env.KIE_AI_API_KEY;
   return !!key && key !== 'your_kie_ai_api_key_here';
 }
+
 

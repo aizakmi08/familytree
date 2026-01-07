@@ -1,61 +1,74 @@
 // Payment Routes - Stripe integration
+// Payment is ONLY for downloading/sharing family trees ($2.99)
+// All themes and generations are FREE
 
 import express from 'express';
 import Stripe from 'stripe';
-import User from '../models/User.js';
-import { auth } from '../middleware/auth.js';
-import { themes } from '../services/themes.js';
+import { DOWNLOAD_PRICE } from '../services/themes.js';
 
 const router = express.Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe (lazy to allow for missing env vars during dev)
+let stripe = null;
+function getStripe() {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+}
 
 /**
  * POST /api/payments/create-checkout
- * Create a Stripe checkout session for theme purchase
+ * Create a Stripe checkout session for downloading a family tree
  */
-router.post('/create-checkout', auth, async (req, res) => {
+router.post('/create-checkout', async (req, res) => {
   try {
-    const { themeId } = req.body;
+    const { email, imageUrl, cleanUrl } = req.body;
 
-    const theme = themes[themeId];
-    if (!theme || theme.category !== 'premium') {
-      return res.status(400).json({ error: 'Invalid premium theme' });
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email is required' });
     }
 
-    const user = await User.findById(req.user.userId);
-    
-    // Check if already purchased
-    if (user.purchasedThemes.includes(themeId)) {
-      return res.status(400).json({ error: 'Theme already purchased' });
+    const stripeClient = getStripe();
+
+    // If Stripe is not configured, allow download for demo/testing
+    if (!stripeClient) {
+      console.log('⚠️ Stripe not configured - allowing free download for demo');
+      return res.json({
+        success: true,
+        downloadUrl: cleanUrl || imageUrl,
+        message: 'Demo mode - download enabled'
+      });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeClient.checkout.sessions.create({
       payment_method_types: ['card'],
+      customer_email: email,
       line_items: [
         {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${theme.name} Theme`,
-              description: theme.description,
+              name: 'AI Family Tree Download',
+              description: 'High-resolution, watermark-free family tree artwork',
+              images: [imageUrl], // Show preview in Stripe
             },
-            unit_amount: Math.round(theme.price * 100), // Stripe uses cents
+            unit_amount: Math.round(DOWNLOAD_PRICE * 100), // $2.99 in cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/builder`,
+      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/download-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/builder`,
       metadata: {
-        userId: req.user.userId.toString(),
-        themeId,
-        type: 'theme',
+        email,
+        imageUrl: cleanUrl || imageUrl, // Store clean URL for delivery
+        type: 'download',
       },
     });
 
-    res.json({ url: session.url, sessionId: session.id });
+    res.json({ checkoutUrl: session.url, sessionId: session.id });
   } catch (error) {
     console.error('Checkout error:', error);
     res.status(500).json({ error: 'Failed to create checkout session' });
@@ -63,42 +76,37 @@ router.post('/create-checkout', auth, async (req, res) => {
 });
 
 /**
- * POST /api/payments/create-premium-checkout
- * Create checkout for premium subscription
+ * GET /api/payments/verify-session
+ * Verify a payment session and return download URL
  */
-router.post('/create-premium-checkout', auth, async (req, res) => {
+router.get('/verify-session/:sessionId', async (req, res) => {
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'AI Family Tree Premium',
-              description: 'Unlimited generations, no watermarks, all themes included',
-            },
-            unit_amount: 999, // $9.99
-            recurring: {
-              interval: 'month',
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/builder`,
-      metadata: {
-        userId: req.user.userId.toString(),
-        type: 'premium',
-      },
-    });
+    const { sessionId } = req.params;
 
-    res.json({ url: session.url, sessionId: session.id });
+    const stripeClient = getStripe();
+    if (!stripeClient) {
+      return res.status(503).json({ error: 'Payment system not configured' });
+    }
+
+    const session = await stripeClient.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === 'paid') {
+      res.json({
+        success: true,
+        paid: true,
+        downloadUrl: session.metadata.imageUrl,
+        email: session.metadata.email,
+      });
+    } else {
+      res.json({
+        success: false,
+        paid: false,
+        message: 'Payment not completed',
+      });
+    }
   } catch (error) {
-    console.error('Premium checkout error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    console.error('Session verification error:', error);
+    res.status(500).json({ error: 'Failed to verify payment session' });
   }
 });
 
@@ -107,11 +115,16 @@ router.post('/create-premium-checkout', auth, async (req, res) => {
  * Handle Stripe webhooks
  */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const stripeClient = getStripe();
+  if (!stripeClient) {
+    return res.status(503).json({ error: 'Payment system not configured' });
+  }
+
   const sig = req.headers['stripe-signature'];
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = stripeClient.webhooks.constructEvent(
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -125,28 +138,15 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
-      const { userId, themeId, type } = session.metadata;
+      const { email, imageUrl, type } = session.metadata;
 
-      if (type === 'theme') {
-        // Add theme to user's purchased themes
-        await User.findByIdAndUpdate(userId, {
-          $addToSet: { purchasedThemes: themeId },
-        });
-        console.log(`✅ Theme ${themeId} purchased by user ${userId}`);
-      } else if (type === 'premium') {
-        // Upgrade user to premium
-        await User.findByIdAndUpdate(userId, {
-          isPremium: true,
-        });
-        console.log(`✅ User ${userId} upgraded to premium`);
+      if (type === 'download') {
+        console.log(`✅ Download purchased by ${email}`);
+        // In a production app, you might want to:
+        // - Send an email with the download link
+        // - Store the purchase in a database
+        // - Generate a secure download token
       }
-      break;
-    }
-
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object;
-      // Handle subscription cancellation if needed
-      console.log('Subscription cancelled:', subscription.id);
       break;
     }
 
@@ -158,23 +158,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 });
 
 /**
- * GET /api/payments/purchases
- * Get user's purchases
+ * GET /api/payments/status
+ * Check if payment system is configured
  */
-router.get('/purchases', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select('purchasedThemes isPremium generationCredits');
-    
-    res.json({
-      purchasedThemes: user.purchasedThemes,
-      isPremium: user.isPremium,
-      generationCredits: user.generationCredits,
-    });
-  } catch (error) {
-    console.error('Get purchases error:', error);
-    res.status(500).json({ error: 'Failed to get purchases' });
-  }
+router.get('/status', (req, res) => {
+  res.json({
+    configured: !!process.env.STRIPE_SECRET_KEY,
+    downloadPrice: DOWNLOAD_PRICE,
+  });
 });
 
 export default router;
-

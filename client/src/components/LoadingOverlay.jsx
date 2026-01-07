@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 
 const LOADING_MESSAGES = [
-  "Preparing the canvas...",
-  "Gathering family memories...",
-  "Choosing the perfect brushstrokes...",
-  "Adding artistic flourishes...",
-  "Weaving family connections...",
+  "Preparing canvas...",
+  "Gathering memories...",
+  "Adding details...",
+  "Weaving connections...",
   "Almost there...",
   "Finishing touches...",
 ];
@@ -21,12 +20,10 @@ export default function LoadingOverlay({ isVisible, theme }) {
       return;
     }
 
-    // Cycle through messages
     const messageInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 3000);
 
-    // Animate progress
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) return prev;
@@ -43,80 +40,58 @@ export default function LoadingOverlay({ isVisible, theme }) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary-900/95 to-primary-800/95 backdrop-blur-sm flex items-center justify-center">
-      <div className="text-center max-w-md px-8">
-        {/* Animated icon */}
+    <div className="fixed inset-0 z-50 bg-surface-950/98 backdrop-blur-sm flex items-center justify-center">
+      <div className="text-center max-w-sm px-8">
+        {/* Progress ring */}
         <div className="relative mb-8">
-          <div className="w-32 h-32 mx-auto">
-            <svg
-              className="w-full h-full animate-pulse-slow"
-              viewBox="0 0 100 100"
-              fill="none"
-            >
+          <div className="w-24 h-24 mx-auto">
+            <svg className="w-full h-full" viewBox="0 0 100 100" fill="none">
               <circle
                 cx="50"
                 cy="50"
                 r="45"
-                stroke="rgba(255,255,255,0.2)"
+                stroke="rgba(255,255,255,0.1)"
                 strokeWidth="2"
               />
               <circle
                 cx="50"
                 cy="50"
                 r="45"
-                stroke="white"
+                stroke="currentColor"
                 strokeWidth="2"
                 strokeDasharray="283"
                 strokeDashoffset={283 - (283 * progress) / 100}
                 strokeLinecap="round"
-                className="transition-all duration-500"
+                className="text-primary-400 transition-all duration-500"
                 transform="rotate(-90 50 50)"
               />
-              <text
-                x="50"
-                y="55"
-                textAnchor="middle"
-                fontSize="30"
-                fill="white"
-              >
-                🌳
-              </text>
             </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-bold text-white">{Math.round(progress)}%</span>
+            </div>
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Creating Your Family Tree
+        <h2 className="text-lg font-semibold text-white mb-1">
+          Generating
         </h2>
 
-        {/* Theme indicator */}
-        <p className="text-white/60 mb-6">
-          Using <span className="text-white font-medium">{theme}</span> theme
+        {/* Theme */}
+        <p className="text-gray-500 text-sm mb-4">
+          {theme} theme
         </p>
 
-        {/* Loading message */}
-        <p className="text-white/80 text-lg mb-4 h-7 transition-all duration-300">
+        {/* Message */}
+        <p className="text-gray-400 text-sm h-5">
           {LOADING_MESSAGES[messageIndex]}
         </p>
 
-        {/* Progress bar */}
-        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden mb-2">
-          <div
-            className="h-full bg-white rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="text-white/40 text-sm">
-          {Math.round(progress)}% complete
-        </p>
-
-        {/* Tip */}
-        <p className="text-white/50 text-xs mt-8">
-          This usually takes 15-30 seconds
+        {/* Time note */}
+        <p className="text-gray-600 text-xs mt-6">
+          ~30 seconds
         </p>
       </div>
     </div>
   );
 }
-
