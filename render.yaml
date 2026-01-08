@@ -32,9 +32,10 @@ services:
         sync: false
     healthCheckPath: /api/generate/status
 
-  # Frontend Static Site (free on Render)
-  - type: static_site
+  # Frontend Static Site
+  - type: web
     name: familytree-client
+    runtime: static
     rootDir: client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
