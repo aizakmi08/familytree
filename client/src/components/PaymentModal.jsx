@@ -3,7 +3,7 @@ import { DOWNLOAD_PRICE } from '../themes/themes';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, cleanUrl }) {
+export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, imageId }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -16,6 +16,11 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, cle
       return;
     }
 
+    if (!imageId) {
+      setError('Invalid image. Please regenerate your family tree.');
+      return;
+    }
+
     setIsProcessing(true);
     setError('');
 
@@ -25,8 +30,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, cle
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          imageUrl,
-          cleanUrl: cleanUrl || imageUrl,
+          imageId, // Secure ID - clean URL is retrieved server-side
         }),
       });
 
@@ -35,7 +39,8 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, cle
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else if (data.success) {
-        onSuccess(data.downloadUrl || cleanUrl || imageUrl);
+        // Demo mode - download URL provided directly
+        onSuccess(data.downloadUrl);
       } else {
         throw new Error(data.error || 'Payment failed');
       }
@@ -135,7 +140,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, imageUrl, cle
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            Secure payment via Stripe
+            Secure payment via Polar
           </p>
 
           {/* Cancel */}

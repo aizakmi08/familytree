@@ -25,7 +25,7 @@ export default function Builder() {
   const [editingMember, setEditingMember] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState(null);
-  const [cleanImageUrl, setCleanImageUrl] = useState(null);
+  const [generatedImageId, setGeneratedImageId] = useState(null);
   const [error, setError] = useState('');
   const [apiReady, setApiReady] = useState(true);
   const [showCustomTheme, setShowCustomTheme] = useState(false);
@@ -63,10 +63,10 @@ export default function Builder() {
       const result = await generateFamilyTree(treeData, isAuthenticated ? token : null);
 
       setGeneratedImageUrl(result.imageUrl);
-      setCleanImageUrl(result.cleanUrl || result.imageUrl);
+      setGeneratedImageId(result.imageId); // Secure ID - clean URL stays server-side
       addGeneration({
         imageUrl: result.imageUrl,
-        cleanUrl: result.cleanUrl,
+        imageId: result.imageId,
         theme: selectedTheme,
         createdAt: new Date().toISOString(),
       });
@@ -79,7 +79,7 @@ export default function Builder() {
 
   const handleRegenerate = () => {
     setGeneratedImageUrl(null);
-    setCleanImageUrl(null);
+    setGeneratedImageId(null);
     handleGenerate();
   };
 
@@ -375,10 +375,10 @@ export default function Builder() {
       {generatedImageUrl && (
         <GenerationResult
           imageUrl={generatedImageUrl}
-          cleanUrl={cleanImageUrl}
+          imageId={generatedImageId}
           onClose={() => {
             setGeneratedImageUrl(null);
-            setCleanImageUrl(null);
+            setGeneratedImageId(null);
           }}
           onRegenerate={handleRegenerate}
         />

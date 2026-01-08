@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import PaymentModal from './PaymentModal';
 
-export default function GenerationResult({ imageUrl, cleanUrl, onClose, onRegenerate, isPaid = false }) {
+export default function GenerationResult({ imageUrl, imageId, onClose, onRegenerate, isPaid = false }) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hasPaid, setHasPaid] = useState(isPaid);
-  const [paidDownloadUrl, setPaidDownloadUrl] = useState(cleanUrl || imageUrl);
+  const [paidDownloadUrl, setPaidDownloadUrl] = useState(null);
   const [screenshotWarning, setScreenshotWarning] = useState(false);
   const imageContainerRef = useRef(null);
 
@@ -73,7 +73,7 @@ export default function GenerationResult({ imageUrl, cleanUrl, onClose, onRegene
   }, [hasPaid]);
 
   const handleDownload = async () => {
-    if (!hasPaid) {
+    if (!hasPaid || !paidDownloadUrl) {
       setShowPaymentModal(true);
       return;
     }
@@ -97,7 +97,7 @@ export default function GenerationResult({ imageUrl, cleanUrl, onClose, onRegene
   };
 
   const handleShare = () => {
-    if (!hasPaid) {
+    if (!hasPaid || !paidDownloadUrl) {
       setShowPaymentModal(true);
       return;
     }
@@ -108,9 +108,30 @@ export default function GenerationResult({ imageUrl, cleanUrl, onClose, onRegene
 
   const handlePaymentSuccess = (downloadUrl) => {
     setHasPaid(true);
-    setPaidDownloadUrl(downloadUrl || cleanUrl || imageUrl);
+    setPaidDownloadUrl(downloadUrl);
     setShowPaymentModal(false);
-    setTimeout(() => handleDownload(), 500);
+    // Trigger download after payment success
+    if (downloadUrl) {
+      setTimeout(() => {
+        // Download the clean image
+        fetch(downloadUrl)
+          .then(response => response.blob())
+          .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `family-tree-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          })
+          .catch(error => {
+            console.error('Download failed:', error);
+            window.open(downloadUrl, '_blank');
+          });
+      }, 500);
+    }
   };
 
   return (
@@ -273,7 +294,7 @@ export default function GenerationResult({ imageUrl, cleanUrl, onClose, onRegene
         onClose={() => setShowPaymentModal(false)}
         onSuccess={handlePaymentSuccess}
         imageUrl={imageUrl}
-        cleanUrl={cleanUrl}
+        imageId={imageId}
       />
     </div>
   );

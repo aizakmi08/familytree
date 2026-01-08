@@ -2,6 +2,7 @@
 // All themes are FREE - payment is only for download/share ($2.99)
 
 import express from 'express';
+import crypto from 'crypto';
 import { buildPrompt, buildContinuationPrompt } from '../services/promptBuilder.js';
 import { generateImage, isConfigured as isKieAIConfigured } from '../services/kieai.js';
 import {
@@ -11,6 +12,35 @@ import {
   uploadMemberPhotos,
 } from '../services/compositor.js';
 import { optionalAuth } from '../middleware/auth.js';
+
+// In-memory store for clean URLs (secure - never exposed to client)
+// In production, use Redis or a database
+const cleanUrlStore = new Map();
+
+// Clean up old entries after 24 hours
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, data] of cleanUrlStore.entries()) {
+    if (now - data.createdAt > 24 * 60 * 60 * 1000) {
+      cleanUrlStore.delete(id);
+    }
+  }
+}, 60 * 60 * 1000); // Run every hour
+
+// Export for use in payments route
+export function getCleanUrl(imageId) {
+  const data = cleanUrlStore.get(imageId);
+  return data?.cleanUrl || null;
+}
+
+export function storeCleanUrl(cleanUrl) {
+  const imageId = crypto.randomBytes(16).toString('hex');
+  cleanUrlStore.set(imageId, {
+    cleanUrl,
+    createdAt: Date.now(),
+  });
+  return imageId;
+}
 
 const router = express.Router();
 
@@ -191,30 +221,36 @@ router.post('/', optionalAuth, async (req, res) => {
 
     // Step 7: Save to Cloudinary with watermark (all previews are watermarked)
     // Users pay $2.99 to download/share WITHOUT watermark
+    // SECURITY: Never expose clean URL to client - store it server-side
     let finalResult;
+    let imageId = null;
+
     if (isCloudinaryConfigured()) {
       try {
+        // Save the clean version FIRST (for paid downloads) - stored server-side only
+        console.log('💾 Saving clean version for downloads...');
+        const cleanVersion = await saveGeneratedImage(finalImageUrl);
+        // Store clean URL securely and get an ID
+        imageId = storeCleanUrl(cleanVersion.url);
+        console.log('🔒 Clean URL stored securely with ID:', imageId);
+
         // All generated previews get a watermark with the tree name
         console.log('🎨 Adding watermark to preview...');
         finalResult = await addWatermark(finalImageUrl, 'PREVIEW', familyTreeName);
-
-        // Also save the clean version for paid downloads
-        console.log('💾 Saving clean version for downloads...');
-        const cleanVersion = await saveGeneratedImage(finalImageUrl);
-        finalResult.cleanUrl = cleanVersion.url;
       } catch (cloudinaryError) {
         console.error('⚠️ Cloudinary operations failed, using Kie AI URL as fallback:', cloudinaryError.message);
-        // Fallback: use the Kie AI URL directly
-        // Note: Kie AI URLs are temporary and may expire, but this allows the user to see the result
+        // Fallback: use the Kie AI URL directly (still watermarked from AI)
         finalResult = {
           url: finalImageUrl,
-          cleanUrl: finalImageUrl,
           warning: 'Image saved to temporary storage. Please regenerate if the image expires.'
         };
+        // Store the temp URL as clean (it will expire anyway)
+        imageId = storeCleanUrl(finalImageUrl);
       }
     } else {
       // Use Kie AI URL directly if Cloudinary not configured
-      finalResult = { url: finalImageUrl, cleanUrl: finalImageUrl };
+      finalResult = { url: finalImageUrl };
+      imageId = storeCleanUrl(finalImageUrl);
     }
 
     // No credits to deduct - all generations are FREE
@@ -232,8 +268,8 @@ router.post('/', optionalAuth, async (req, res) => {
 
     const response = {
       success: true,
-      imageUrl: finalResult.url,
-      cleanUrl: finalResult.cleanUrl, // For paid downloads
+      imageUrl: finalResult.url, // Watermarked preview URL only
+      imageId, // Secure ID for payment - never contains actual URL
       message: needsMultiPass
         ? `Family tree generated in ${passesCompleted} passes! All ${uploadedPhotos.length} photos integrated.`
         : 'Family tree generated successfully!',

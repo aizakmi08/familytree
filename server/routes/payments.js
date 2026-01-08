@@ -5,6 +5,7 @@
 import express from 'express';
 import { Polar } from '@polar-sh/sdk';
 import { DOWNLOAD_PRICE } from '../services/themes.js';
+import { getCleanUrl } from './generate.js';
 
 const router = express.Router();
 
@@ -27,10 +28,20 @@ function getPolar() {
  */
 router.post('/create-checkout', async (req, res) => {
   try {
-    const { email, imageUrl, cleanUrl } = req.body;
+    const { email, imageId } = req.body;
 
     if (!email || !email.includes('@')) {
       return res.status(400).json({ error: 'Valid email is required' });
+    }
+
+    if (!imageId) {
+      return res.status(400).json({ error: 'Image ID is required' });
+    }
+
+    // Verify the imageId is valid (clean URL exists)
+    const cleanUrl = getCleanUrl(imageId);
+    if (!cleanUrl) {
+      return res.status(400).json({ error: 'Invalid or expired image ID. Please regenerate your family tree.' });
     }
 
     const polarClient = getPolar();
@@ -40,7 +51,7 @@ router.post('/create-checkout', async (req, res) => {
       console.log('⚠️ Polar not configured - allowing free download for demo');
       return res.json({
         success: true,
-        downloadUrl: cleanUrl || imageUrl,
+        downloadUrl: cleanUrl,
         message: 'Demo mode - download enabled'
       });
     }
@@ -56,13 +67,15 @@ router.post('/create-checkout', async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
     // Create Polar checkout session
+    // SECURITY: Store imageId in metadata, not the actual URL
+    // Clean URL is retrieved server-side after payment verification
     const checkout = await polarClient.checkouts.create({
       products: [productId],
       customerEmail: email,
       successUrl: `${clientUrl}/download-success?checkout_id={CHECKOUT_ID}`,
       metadata: {
         email,
-        imageUrl: cleanUrl || imageUrl,
+        imageId, // Store the secure ID, not the URL
         type: 'download',
       },
     });
@@ -95,19 +108,25 @@ router.get('/verify-session/:checkoutId', async (req, res) => {
     // Get checkout status from Polar
     const checkout = await polarClient.checkouts.get({ id: checkoutId });
 
-    if (checkout.status === 'succeeded') {
+    if (checkout.status === 'succeeded' || checkout.status === 'confirmed') {
+      // SECURITY: Retrieve clean URL server-side using the stored imageId
+      const imageId = checkout.metadata?.imageId;
+      const cleanUrl = imageId ? getCleanUrl(imageId) : null;
+
+      if (!cleanUrl) {
+        // Fallback for legacy checkouts or expired images
+        console.warn('⚠️ Clean URL not found for imageId:', imageId);
+        return res.status(410).json({
+          success: false,
+          paid: true,
+          error: 'Image has expired. Please regenerate your family tree.',
+        });
+      }
+
       res.json({
         success: true,
         paid: true,
-        downloadUrl: checkout.metadata?.imageUrl,
-        email: checkout.metadata?.email || checkout.customerEmail,
-      });
-    } else if (checkout.status === 'confirmed') {
-      // Payment confirmed but not yet fully processed
-      res.json({
-        success: true,
-        paid: true,
-        downloadUrl: checkout.metadata?.imageUrl,
+        downloadUrl: cleanUrl, // Only revealed after payment verification
         email: checkout.metadata?.email || checkout.customerEmail,
       });
     } else {
