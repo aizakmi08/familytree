@@ -3,7 +3,7 @@ services:
   - type: web
     name: familytree-api
     runtime: node
-    plan: free
+    plan: starter
     rootDir: server
     buildCommand: npm install
     startCommand: npm start
@@ -36,11 +36,9 @@ services:
         sync: false
     healthCheckPath: /api/generate/status
 
-  # Frontend Static Site
-  - type: web
+  # Frontend Static Site (free on Render)
+  - type: static_site
     name: familytree-client
-    runtime: static
-    plan: free
     rootDir: client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
