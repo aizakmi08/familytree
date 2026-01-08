@@ -35,7 +35,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Special handling for Stripe webhooks (needs raw body)
+// Special handling for Polar webhooks (needs raw body)
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
 // JSON parsing for other routes

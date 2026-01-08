@@ -5,20 +5,21 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function DownloadSuccess() {
   const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  // Support both Polar (checkout_id) and legacy Stripe (session_id)
+  const checkoutId = searchParams.get('checkout_id') || searchParams.get('session_id');
 
   const [status, setStatus] = useState('loading');
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!checkoutId) {
       setStatus('error');
       setError('No payment session found');
       return;
     }
 
-    fetch(`${API_URL}/payments/verify-session/${sessionId}`)
+    fetch(`${API_URL}/payments/verify-session/${checkoutId}`)
       .then(res => res.json())
       .then(data => {
         if (data.paid) {
@@ -26,14 +27,14 @@ export default function DownloadSuccess() {
           setDownloadUrl(data.downloadUrl);
         } else {
           setStatus('error');
-          setError('Payment not completed');
+          setError(data.message || 'Payment not completed');
         }
       })
       .catch(err => {
         setStatus('error');
         setError(err.message);
       });
-  }, [sessionId]);
+  }, [checkoutId]);
 
   const handleDownload = async () => {
     if (!downloadUrl) return;

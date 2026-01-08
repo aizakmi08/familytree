@@ -24,9 +24,13 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: STRIPE_SECRET_KEY
+      - key: POLAR_ACCESS_TOKEN
         sync: false
-      - key: STRIPE_WEBHOOK_SECRET
+      - key: POLAR_PRODUCT_ID
+        sync: false
+      - key: POLAR_ENVIRONMENT
+        value: production
+      - key: POLAR_WEBHOOK_SECRET
         sync: false
       - key: CLIENT_URL
         sync: false

@@ -1,25 +1,29 @@
-// Payment Routes - Stripe integration
+// Payment Routes - Polar integration
 // Payment is ONLY for downloading/sharing family trees ($2.99)
 // All themes and generations are FREE
 
 import express from 'express';
-import Stripe from 'stripe';
+import { Polar } from '@polar-sh/sdk';
 import { DOWNLOAD_PRICE } from '../services/themes.js';
 
 const router = express.Router();
 
-// Initialize Stripe (lazy to allow for missing env vars during dev)
-let stripe = null;
-function getStripe() {
-  if (!stripe && process.env.STRIPE_SECRET_KEY) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Polar (lazy to allow for missing env vars during dev)
+let polar = null;
+function getPolar() {
+  if (!polar && process.env.POLAR_ACCESS_TOKEN) {
+    polar = new Polar({
+      accessToken: process.env.POLAR_ACCESS_TOKEN,
+      // Use sandbox for testing, remove for production
+      server: process.env.POLAR_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production',
+    });
   }
-  return stripe;
+  return polar;
 }
 
 /**
  * POST /api/payments/create-checkout
- * Create a Stripe checkout session for downloading a family tree
+ * Create a Polar checkout session for downloading a family tree
  */
 router.post('/create-checkout', async (req, res) => {
   try {
@@ -29,11 +33,11 @@ router.post('/create-checkout', async (req, res) => {
       return res.status(400).json({ error: 'Valid email is required' });
     }
 
-    const stripeClient = getStripe();
+    const polarClient = getPolar();
 
-    // If Stripe is not configured, allow download for demo/testing
-    if (!stripeClient) {
-      console.log('⚠️ Stripe not configured - allowing free download for demo');
+    // If Polar is not configured, allow download for demo/testing
+    if (!polarClient) {
+      console.log('⚠️ Polar not configured - allowing free download for demo');
       return res.json({
         success: true,
         downloadUrl: cleanUrl || imageUrl,
@@ -41,34 +45,34 @@ router.post('/create-checkout', async (req, res) => {
       });
     }
 
-    const session = await stripeClient.checkout.sessions.create({
-      payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'AI Family Tree Download',
-              description: 'High-resolution, watermark-free family tree artwork',
-              images: [imageUrl], // Show preview in Stripe
-            },
-            unit_amount: Math.round(DOWNLOAD_PRICE * 100), // $2.99 in cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/download-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/builder`,
+    // Get product ID from environment or use default
+    const productId = process.env.POLAR_PRODUCT_ID;
+
+    if (!productId) {
+      console.error('❌ POLAR_PRODUCT_ID not configured');
+      return res.status(503).json({ error: 'Payment product not configured' });
+    }
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    // Create Polar checkout session
+    const checkout = await polarClient.checkouts.create({
+      products: [productId],
+      customerEmail: email,
+      successUrl: `${clientUrl}/download-success?checkout_id={CHECKOUT_ID}`,
       metadata: {
         email,
-        imageUrl: cleanUrl || imageUrl, // Store clean URL for delivery
+        imageUrl: cleanUrl || imageUrl,
         type: 'download',
       },
     });
 
-    res.json({ checkoutUrl: session.url, sessionId: session.id });
+    console.log('✅ Polar checkout created:', checkout.id);
+
+    res.json({
+      checkoutUrl: checkout.url,
+      checkoutId: checkout.id
+    });
   } catch (error) {
     console.error('Checkout error:', error);
     res.status(500).json({ error: 'Failed to create checkout session' });
@@ -76,31 +80,41 @@ router.post('/create-checkout', async (req, res) => {
 });
 
 /**
- * GET /api/payments/verify-session
+ * GET /api/payments/verify-session/:checkoutId
  * Verify a payment session and return download URL
  */
-router.get('/verify-session/:sessionId', async (req, res) => {
+router.get('/verify-session/:checkoutId', async (req, res) => {
   try {
-    const { sessionId } = req.params;
+    const { checkoutId } = req.params;
 
-    const stripeClient = getStripe();
-    if (!stripeClient) {
+    const polarClient = getPolar();
+    if (!polarClient) {
       return res.status(503).json({ error: 'Payment system not configured' });
     }
 
-    const session = await stripeClient.checkout.sessions.retrieve(sessionId);
+    // Get checkout status from Polar
+    const checkout = await polarClient.checkouts.get({ id: checkoutId });
 
-    if (session.payment_status === 'paid') {
+    if (checkout.status === 'succeeded') {
       res.json({
         success: true,
         paid: true,
-        downloadUrl: session.metadata.imageUrl,
-        email: session.metadata.email,
+        downloadUrl: checkout.metadata?.imageUrl,
+        email: checkout.metadata?.email || checkout.customerEmail,
+      });
+    } else if (checkout.status === 'confirmed') {
+      // Payment confirmed but not yet fully processed
+      res.json({
+        success: true,
+        paid: true,
+        downloadUrl: checkout.metadata?.imageUrl,
+        email: checkout.metadata?.email || checkout.customerEmail,
       });
     } else {
       res.json({
         success: false,
         paid: false,
+        status: checkout.status,
         message: 'Payment not completed',
       });
     }
@@ -112,49 +126,67 @@ router.get('/verify-session/:sessionId', async (req, res) => {
 
 /**
  * POST /api/payments/webhook
- * Handle Stripe webhooks
+ * Handle Polar webhooks
  */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const stripeClient = getStripe();
-  if (!stripeClient) {
-    return res.status(503).json({ error: 'Payment system not configured' });
+  const webhookSecret = process.env.POLAR_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.warn('⚠️ POLAR_WEBHOOK_SECRET not configured');
+    return res.status(503).json({ error: 'Webhook not configured' });
   }
 
-  const sig = req.headers['stripe-signature'];
-
-  let event;
   try {
-    event = stripeClient.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+    // Verify webhook signature
+    const signature = req.headers['webhook-signature'] || req.headers['polar-signature'];
 
-  // Handle the event
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      const { email, imageUrl, type } = session.metadata;
+    if (!signature) {
+      console.error('❌ Missing webhook signature');
+      return res.status(400).json({ error: 'Missing signature' });
+    }
 
-      if (type === 'download') {
-        console.log(`✅ Download purchased by ${email}`);
-        // In a production app, you might want to:
+    // Parse the webhook payload
+    const payload = JSON.parse(req.body.toString());
+
+    // Handle different event types
+    const eventType = payload.type || payload.event;
+
+    switch (eventType) {
+      case 'checkout.created':
+        console.log('📝 Checkout created:', payload.data?.id);
+        break;
+
+      case 'checkout.updated':
+        console.log('🔄 Checkout updated:', payload.data?.id, 'Status:', payload.data?.status);
+        break;
+
+      case 'order.created': {
+        const order = payload.data;
+        console.log(`✅ Order created: ${order?.id}`);
+        console.log(`   Customer: ${order?.customer?.email}`);
+        console.log(`   Amount: $${(order?.amount || 0) / 100}`);
+
+        // In production, you might want to:
         // - Send an email with the download link
         // - Store the purchase in a database
         // - Generate a secure download token
+        break;
       }
-      break;
+
+      case 'subscription.created':
+      case 'subscription.updated':
+        console.log('📦 Subscription event:', eventType, payload.data?.id);
+        break;
+
+      default:
+        console.log(`ℹ️ Unhandled webhook event: ${eventType}`);
     }
 
-    default:
-      console.log(`Unhandled event type: ${event.type}`);
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(400).json({ error: 'Webhook processing failed' });
   }
-
-  res.json({ received: true });
 });
 
 /**
@@ -163,7 +195,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
  */
 router.get('/status', (req, res) => {
   res.json({
-    configured: !!process.env.STRIPE_SECRET_KEY,
+    configured: !!process.env.POLAR_ACCESS_TOKEN && !!process.env.POLAR_PRODUCT_ID,
+    provider: 'polar',
     downloadPrice: DOWNLOAD_PRICE,
   });
 });
