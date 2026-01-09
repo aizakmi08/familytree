@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../store/authStore';
 
 export default function AuthModal({ isOpen, onClose }) {
@@ -10,7 +11,21 @@ export default function AuthModal({ isOpen, onClose }) {
   });
   const [error, setError] = useState('');
 
-  const { login, register, isLoading } = useAuthStore();
+  const { login, register, loginWithGoogle, isLoading } = useAuthStore();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    const result = await loginWithGoogle(credentialResponse.credential);
+    if (result.success) {
+      onClose();
+    } else {
+      setError(result.error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign in failed. Please try again.');
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -132,6 +147,28 @@ export default function AuthModal({ isOpen, onClose }) {
               mode === 'login' ? 'Sign In' : 'Create Account'
             )}
           </button>
+
+          {/* Divider */}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-surface-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-surface-900 text-gray-500">or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Sign In */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="filled_black"
+              size="large"
+              width="100%"
+              text={mode === 'login' ? 'signin_with' : 'signup_with'}
+            />
+          </div>
 
           <p className="text-center text-sm text-gray-500">
             {mode === 'login' ? (
