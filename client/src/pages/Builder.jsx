@@ -94,31 +94,31 @@ export default function Builder() {
     <div className="min-h-screen bg-surface-950">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-surface-800">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                <svg className="w-5 h-5 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
                 </svg>
               </div>
-              <span className="font-serif text-lg font-semibold text-white">Heritage</span>
+              <span className="font-serif text-base sm:text-lg font-semibold text-white">Heritage</span>
             </Link>
-            <div className="flex items-center gap-4">
-              <Link to="/gallery" className="text-sm text-gray-400 hover:text-white transition-colors">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Link to="/gallery" className="hidden sm:block text-sm text-gray-400 hover:text-white transition-colors">
                 Gallery
               </Link>
               {isAuthenticated ? (
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">{user?.name}</span>
-                  <button onClick={logout} className="text-sm text-gray-500 hover:text-white transition-colors">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="hidden sm:block text-sm text-gray-400">{user?.name}</span>
+                  <button onClick={logout} className="text-xs sm:text-sm text-gray-500 hover:text-white transition-colors">
                     Sign Out
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Sign In
                 </button>
@@ -129,13 +129,13 @@ export default function Builder() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-24 pb-12 px-6">
+      <main className="pt-20 sm:pt-24 pb-8 sm:pb-12 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           {/* Tree Name Input */}
-          <div className="mb-8">
-            <label className="block text-sm text-gray-500 mb-2">
+          <div className="mb-6 sm:mb-8">
+            <label className="block text-xs sm:text-sm text-gray-500 mb-2">
               <span className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
                 Tree Name (appears on final image)
@@ -147,15 +147,15 @@ export default function Builder() {
                 value={treeName}
                 onChange={(e) => setTreeName(e.target.value)}
                 placeholder="Enter your family tree name..."
-                className="w-full text-2xl md:text-3xl font-serif font-bold bg-surface-900 border-2 border-surface-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all hover:border-surface-600"
+                className="w-full text-xl sm:text-2xl md:text-3xl font-serif font-bold bg-surface-900 border-2 border-surface-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white placeholder-gray-600 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all hover:border-surface-600"
               />
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 group-hover:text-gray-400 transition-colors pointer-events-none">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-600 group-hover:text-gray-400 transition-colors pointer-events-none">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mt-2">
+            <p className="text-gray-600 text-xs sm:text-sm mt-2">
               {members.length} member{members.length !== 1 ? 's' : ''} · {relationships.length} relationship{relationships.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -179,39 +179,39 @@ export default function Builder() {
             </div>
           )}
 
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Left: Family Members */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {/* Family Members */}
-              <div className="card">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-semibold text-white">Family Members</h2>
+              <div className="card p-4 sm:p-6">
+                <div className="flex justify-between items-center mb-4 sm:mb-6">
+                  <h2 className="text-base sm:text-lg font-semibold text-white">Family Members</h2>
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="btn-primary text-sm py-2"
+                    className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-6"
                   >
                     Add Member
                   </button>
                 </div>
 
                 {members.length === 0 ? (
-                  <div className="text-center py-12 border-2 border-dashed border-surface-700 rounded-lg">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-surface-800 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="text-center py-8 sm:py-12 border-2 border-dashed border-surface-700 rounded-lg">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 rounded-full bg-surface-800 flex items-center justify-center">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
-                    <p className="text-gray-400 mb-2">No members yet</p>
-                    <p className="text-gray-600 text-sm mb-4">Start by adding your family members</p>
+                    <p className="text-gray-400 mb-1 sm:mb-2 text-sm sm:text-base">No members yet</p>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">Start by adding your family members</p>
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="btn-secondary text-sm"
+                      className="btn-secondary text-xs sm:text-sm"
                     >
                       Add First Member
                     </button>
                   </div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {members.map((member) => (
                       <MemberCard
                         key={member.id}
@@ -224,10 +224,10 @@ export default function Builder() {
               </div>
 
               {/* Relationships */}
-              <div className="card">
-                <h2 className="text-lg font-semibold text-white mb-4">Relationships</h2>
+              <div className="card p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Relationships</h2>
                 {members.length < 2 ? (
-                  <p className="text-gray-500 text-sm">Add at least 2 members to define relationships</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">Add at least 2 members to define relationships</p>
                 ) : (
                   <RelationshipList />
                 )}
@@ -235,9 +235,9 @@ export default function Builder() {
 
               {/* Tree Visualization */}
               {members.length >= 2 && (
-                <div className="card">
-                  <h2 className="text-lg font-semibold text-white mb-4">Tree Preview</h2>
-                  <div className="bg-surface-800/50 rounded-lg border border-surface-700 overflow-hidden">
+                <div className="card p-4 sm:p-6">
+                  <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Tree Preview</h2>
+                  <div className="bg-surface-800/50 rounded-lg border border-surface-700 overflow-x-auto">
                     <FamilyTreeDiagram onEditMember={handleEditMember} />
                   </div>
                   <p className="text-xs text-gray-600 mt-2 text-center">
@@ -248,41 +248,41 @@ export default function Builder() {
             </div>
 
             {/* Right: Theme & Generate */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Theme Selection */}
-              <div className="card">
-                <h2 className="text-lg font-semibold text-white mb-4">Theme</h2>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="card p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Theme</h2>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   {ALL_THEMES.map((theme) => (
                     <button
                       key={theme.id}
                       onClick={() => handleThemeSelect(theme.id)}
-                      className={`p-3 rounded-lg border transition-all text-center ${
+                      className={`p-2 sm:p-3 rounded-lg border transition-all text-center ${
                         selectedTheme === theme.id
                           ? 'border-primary-500 bg-primary-500/10'
                           : 'border-surface-700 hover:border-surface-600 bg-surface-800'
                       }`}
                     >
-                      <div className="text-xl mb-1">{theme.emoji}</div>
-                      <span className="text-xs text-gray-400">{theme.name}</span>
+                      <div className="text-lg sm:text-xl mb-0.5 sm:mb-1">{theme.emoji}</div>
+                      <span className="text-[10px] sm:text-xs text-gray-400 line-clamp-1">{theme.name}</span>
                     </button>
                   ))}
                   {/* Custom Theme */}
                   <button
                     onClick={() => handleThemeSelect('custom')}
-                    className={`p-3 rounded-lg border transition-all text-center ${
+                    className={`p-2 sm:p-3 rounded-lg border transition-all text-center ${
                       selectedTheme === 'custom'
                         ? 'border-primary-500 bg-primary-500/10'
                         : 'border-surface-700 hover:border-surface-600 bg-surface-800'
                     }`}
                   >
-                    <div className="text-xl mb-1">+</div>
-                    <span className="text-xs text-gray-400">Custom</span>
+                    <div className="text-lg sm:text-xl mb-0.5 sm:mb-1">+</div>
+                    <span className="text-[10px] sm:text-xs text-gray-400">Custom</span>
                   </button>
                 </div>
 
                 {showCustomTheme && (
-                  <div className="mt-4">
+                  <div className="mt-3 sm:mt-4">
                     <textarea
                       value={customThemePrompt}
                       onChange={(e) => setCustomThemePrompt(e.target.value)}
@@ -298,7 +298,7 @@ export default function Builder() {
               <button
                 onClick={handleGenerate}
                 disabled={!canGenerate() || isGenerating || !apiReady || (selectedTheme === 'custom' && !customThemePrompt)}
-                className="w-full btn-primary py-4 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full btn-primary py-3 sm:py-4 text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isGenerating ? (
                   <span className="flex items-center justify-center gap-2">
@@ -317,9 +317,9 @@ export default function Builder() {
               )}
 
               {/* Progress */}
-              <div className="card">
-                <h3 className="text-sm font-medium text-gray-400 mb-3">Checklist</h3>
-                <div className="space-y-2 text-sm">
+              <div className="card p-4 sm:p-6">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-400 mb-2 sm:mb-3">Checklist</h3>
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className={`flex items-center gap-2 ${members.length >= 2 ? 'text-primary-400' : 'text-gray-600'}`}>
                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${members.length >= 2 ? 'border-primary-400 bg-primary-400/20' : 'border-gray-600'}`}>
                       {members.length >= 2 && (

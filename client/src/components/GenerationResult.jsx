@@ -135,11 +135,11 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-surface-950 flex items-center justify-center p-4 overflow-y-auto no-select">
+    <div className="fixed inset-0 z-50 bg-surface-950 flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-select">
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 text-gray-500 hover:text-white p-2 rounded-lg hover:bg-surface-800 transition-colors z-20"
+        className="absolute top-3 right-3 sm:top-6 sm:right-6 text-gray-500 hover:text-white p-2 rounded-lg hover:bg-surface-800 transition-colors z-20"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -149,9 +149,9 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
       {/* Main content */}
       <div className="max-w-3xl w-full relative z-10">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">Your Family Tree</h2>
-          <p className="text-gray-500 text-sm">
+        <div className="text-center mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Your Family Tree</h2>
+          <p className="text-gray-500 text-xs sm:text-sm">
             {hasPaid ? 'Ready to download' : 'Preview - Download to get full quality'}
           </p>
         </div>
@@ -219,19 +219,19 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
                 {/* Center unlock prompt */}
                 <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                   <div
-                    className="bg-surface-950/95 backdrop-blur-sm rounded-xl p-6 text-center max-w-xs border border-surface-700 shadow-2xl pointer-events-auto"
+                    className="bg-surface-950/95 backdrop-blur-sm rounded-xl p-4 sm:p-6 text-center max-w-[280px] sm:max-w-xs border border-surface-700 shadow-2xl pointer-events-auto mx-4"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-500/20 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 rounded-full bg-primary-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
-                    <p className="text-white font-medium mb-2">Unlock Full Quality</p>
-                    <p className="text-gray-400 text-sm mb-4">HD download without watermarks</p>
+                    <p className="text-white font-medium mb-1 sm:mb-2 text-sm sm:text-base">Unlock Full Quality</p>
+                    <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4">HD download without watermarks</p>
                     <button
                       onClick={() => setShowPaymentModal(true)}
-                      className="btn-primary w-full text-sm"
+                      className="btn-primary w-full text-xs sm:text-sm py-2 sm:py-3"
                     >
                       Download HD - $2.99
                     </button>
@@ -243,12 +243,12 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
         </div>
 
         {/* Action buttons */}
-        <div className="flex justify-center gap-3 mt-6">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 sm:mt-6">
           <button
             onClick={handleDownload}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             {hasPaid ? 'Download' : 'Download HD'}
@@ -256,9 +256,9 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
 
           <button
             onClick={handleShare}
-            className="btn-secondary flex items-center gap-2"
+            className="btn-secondary flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
             Share
@@ -266,9 +266,9 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
 
           <button
             onClick={onRegenerate}
-            className="btn-ghost flex items-center gap-2"
+            className="btn-ghost flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Try Again

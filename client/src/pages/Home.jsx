@@ -3,57 +3,99 @@ import { useState } from 'react';
 import AuthModal from '../components/AuthModal';
 import { useAuthStore } from '../store/authStore';
 
-// Example family tree images - replace with actual generated examples
+// Mobile menu component
+function MobileMenu({ isOpen, onClose, isAuthenticated, onSignIn }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 w-64 bg-surface-900 border-l border-surface-800 p-6">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <nav className="mt-8 flex flex-col gap-4">
+          <Link to="/gallery" onClick={onClose} className="text-gray-300 hover:text-white py-2 transition-colors">
+            Gallery
+          </Link>
+          {isAuthenticated ? (
+            <Link to="/builder" onClick={onClose} className="btn-primary text-center">
+              Create
+            </Link>
+          ) : (
+            <>
+              <button onClick={() => { onClose(); onSignIn(); }} className="text-gray-300 hover:text-white py-2 text-left transition-colors">
+                Sign In
+              </button>
+              <Link to="/builder" onClick={onClose} className="btn-primary text-center">
+                Create
+              </Link>
+            </>
+          )}
+          <div className="border-t border-surface-700 my-4" />
+          <Link to="/privacy" onClick={onClose} className="text-gray-500 hover:text-gray-300 text-sm py-1">Privacy</Link>
+          <Link to="/terms" onClick={onClose} className="text-gray-500 hover:text-gray-300 text-sm py-1">Terms</Link>
+          <Link to="/contact" onClick={onClose} className="text-gray-500 hover:text-gray-300 text-sm py-1">Contact</Link>
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+// Example family tree themes - each representing a family of 5 (2 parents, 3 children)
 const EXAMPLE_TREES = [
   {
     id: 1,
-    theme: 'Classic',
-    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
+    theme: 'Classic Elegant',
+    description: 'Timeless sepia portraits in ornate golden frames',
+    image: 'https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=600&h=400&fit=crop&auto=format',
   },
   {
     id: 2,
     theme: 'Game of Thrones',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
+    description: 'Medieval castle banners with house sigils',
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=400&fit=crop&auto=format',
   },
   {
     id: 3,
     theme: 'Harry Potter',
-    image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
+    description: 'Magical moving portraits in Hogwarts style',
+    image: 'https://images.unsplash.com/photo-1598153346810-860daa814c4b?w=600&h=400&fit=crop&auto=format',
   },
   {
     id: 4,
-    theme: 'Botanical',
-    image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
+    theme: 'Botanical Garden',
+    description: 'Watercolor flowers connecting your family',
+    image: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&h=400&fit=crop&auto=format',
   },
   {
     id: 5,
-    theme: 'Vintage',
-    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
+    theme: 'Vintage Victorian',
+    description: 'Antique paper with elegant calligraphy',
+    image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=600&h=400&fit=crop&auto=format',
   },
   {
     id: 6,
-    theme: 'Celestial',
+    theme: 'Celestial Night',
+    description: 'Stars and constellations forming your tree',
     image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=400&fit=crop&auto=format',
-    placeholder: true
   },
 ];
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
 
   return (
     <div className="min-h-screen bg-surface-950">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-surface-800">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
                 <svg className="w-5 h-5 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
@@ -61,7 +103,9 @@ export default function Home() {
               </div>
               <span className="font-serif text-lg font-semibold text-white">Heritage</span>
             </Link>
-            <div className="flex items-center gap-6">
+
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-6">
               <Link to="/gallery" className="text-gray-400 hover:text-white text-sm transition-colors">
                 Gallery
               </Link>
@@ -83,24 +127,42 @@ export default function Home() {
                 </>
               )}
             </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </nav>
 
+      {/* Mobile Menu */}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        isAuthenticated={isAuthenticated}
+        onSignIn={() => setIsAuthModalOpen(true)}
+      />
+
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight tracking-tight">
             Your Family Story,
             <span className="block text-gradient">Beautifully Crafted</span>
           </h1>
-          <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-400 max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2">
             Transform your family history into stunning AI-generated artwork.
             Upload photos, choose a theme, and create something worth framing.
           </p>
           <Link
             to="/builder"
-            className="inline-flex items-center gap-2 btn-primary text-base px-8 py-4"
+            className="inline-flex items-center gap-2 btn-primary text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4"
           >
             Start Creating
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,14 +173,14 @@ export default function Home() {
       </section>
 
       {/* Example Gallery */}
-      <section className="py-20 px-6">
+      <section className="py-12 sm:py-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-3">Explore Themes</h2>
-            <p className="text-gray-500">Each theme brings a unique artistic style to your family tree</p>
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3">Explore Themes</h2>
+            <p className="text-gray-500 text-sm sm:text-base">Each theme brings a unique artistic style to your family tree</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {EXAMPLE_TREES.map((example) => (
               <Link
                 key={example.id}
@@ -133,7 +195,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <p className="text-white font-medium">{example.theme}</p>
-                  <p className="text-gray-400 text-sm">Theme</p>
+                  <p className="text-gray-400 text-sm line-clamp-2">{example.description}</p>
                 </div>
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="inline-flex items-center gap-1 bg-surface-900/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
@@ -150,14 +212,14 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6 border-t border-surface-800">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 border-t border-surface-800">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-white mb-3">How It Works</h2>
-            <p className="text-gray-500">Three simple steps to create your masterpiece</p>
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3">How It Works</h2>
+            <p className="text-gray-500 text-sm sm:text-base">Three simple steps to create your masterpiece</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 step: '01',
@@ -188,9 +250,9 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 border-t border-surface-800">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 border-t border-surface-800">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {[
               { icon: '01', title: 'Photo Integration', desc: 'Real photos composited into artistic scenes' },
               { icon: '02', title: 'HD Quality', desc: 'Print-ready 2K resolution output' },
@@ -212,13 +274,13 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 border-t border-surface-800">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-surface-800">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Begin?</h2>
-          <p className="text-gray-500 mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">Ready to Begin?</h2>
+          <p className="text-gray-500 mb-6 sm:mb-8 text-sm sm:text-base">
             Create a beautiful family tree that captures your heritage.
           </p>
-          <Link to="/builder" className="inline-flex items-center gap-2 btn-primary px-8 py-4">
+          <Link to="/builder" className="inline-flex items-center gap-2 btn-primary px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
             Start Creating
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -228,8 +290,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-surface-800">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-surface-800">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-surface-950" fill="currentColor" viewBox="0 0 20 20">
@@ -239,9 +301,9 @@ export default function Home() {
             <span className="text-gray-500 text-sm">Heritage</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-500">
-            <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
-            <a href="mailto:support@heritage.com" className="hover:text-gray-300 transition-colors">Contact</a>
+            <Link to="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
+            <Link to="/contact" className="hover:text-gray-300 transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
