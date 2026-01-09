@@ -2,6 +2,7 @@ import { useFamilyStore } from '../store/familyStore';
 
 const RELATIONSHIP_LABELS = {
   parent: 'parent of',
+  child: 'child of',
   spouse: 'spouse of',
   sibling: 'sibling of',
 };

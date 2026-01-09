@@ -101,7 +101,15 @@ export default function Builder() {
 
   const handleAddRelationship = () => {
     if (!relFromMember || !relToMember || relFromMember === relToMember) return;
-    addRelationship(relFromMember, relToMember, relType);
+
+    // Handle "child of" by converting to "parent" relationship with swapped direction
+    // "A is child of B" becomes "B is parent of A"
+    if (relType === 'child') {
+      addRelationship(relToMember, relFromMember, 'parent');
+    } else {
+      addRelationship(relFromMember, relToMember, relType);
+    }
+
     setRelFromMember('');
     setRelToMember('');
     setRelType('parent');
