@@ -216,25 +216,31 @@ export default function GenerationResult({ imageUrl, imageId, onClose, onRegener
                   PREVIEW
                 </div>
 
+                {/* Blur overlay for desktop - covers most of the image */}
+                <div className="absolute inset-0 z-15 hidden md:block">
+                  <div className="absolute inset-0 bg-surface-950/60 backdrop-blur-md" />
+                </div>
+
                 {/* Center unlock prompt */}
                 <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                   <div
-                    className="bg-surface-950/95 backdrop-blur-sm rounded-xl p-4 sm:p-6 text-center max-w-[280px] sm:max-w-xs border border-surface-700 shadow-2xl pointer-events-auto mx-4"
+                    className="bg-surface-950/95 backdrop-blur-sm rounded-xl p-4 sm:p-6 md:p-8 lg:p-10 text-center max-w-[280px] sm:max-w-xs md:max-w-md lg:max-w-lg border border-surface-700 shadow-2xl pointer-events-auto mx-4"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 rounded-full bg-primary-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 md:mb-5 rounded-full bg-primary-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path className="text-primary-400" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
-                    <p className="text-white font-medium mb-1 sm:mb-2 text-sm sm:text-base">Unlock Full Quality</p>
-                    <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4">HD download without watermarks</p>
+                    <p className="text-white font-medium mb-1 sm:mb-2 text-sm sm:text-base md:text-xl md:mb-3">Unlock Full Quality</p>
+                    <p className="text-gray-400 text-xs sm:text-sm md:text-base mb-3 sm:mb-4 md:mb-6">HD download without watermarks</p>
                     <button
                       onClick={() => setShowPaymentModal(true)}
-                      className="btn-primary w-full text-xs sm:text-sm py-2 sm:py-3"
+                      className="btn-primary w-full text-xs sm:text-sm md:text-base py-2 sm:py-3 md:py-4"
                     >
                       Download HD - $2.99
                     </button>
+                    <p className="text-gray-500 text-xs mt-3 md:mt-4 md:text-sm">One-time payment · Instant download</p>
                   </div>
                 </div>
               </>

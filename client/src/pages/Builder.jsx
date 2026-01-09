@@ -12,13 +12,20 @@ import GenerationResult from '../components/GenerationResult';
 import { generateFamilyTree, checkGenerationStatus } from '../utils/api';
 import { getStandardThemes, getFunThemes, getNatureThemes, getTheme } from '../themes/themes';
 
+const RELATIONSHIP_TYPES = [
+  { id: 'parent', label: 'Parent of', icon: '👨' },
+  { id: 'child', label: 'Child of', icon: '👶' },
+  { id: 'spouse', label: 'Spouse of', icon: '💑' },
+  { id: 'sibling', label: 'Sibling of', icon: '👫' },
+];
+
 const STANDARD_THEMES = getStandardThemes();
 const FUN_THEMES = getFunThemes();
 const NATURE_THEMES = getNatureThemes();
 const ALL_THEMES = [...STANDARD_THEMES, ...FUN_THEMES, ...NATURE_THEMES];
 
 export default function Builder() {
-  const { members, relationships, selectedTheme, setTheme, treeName, setTreeName, canGenerate, getTreeData, addGeneration, setGenerating, isGenerating } = useFamilyStore();
+  const { members, relationships, selectedTheme, setTheme, treeName, setTreeName, canGenerate, getTreeData, addGeneration, setGenerating, isGenerating, addRelationship } = useFamilyStore();
   const { isAuthenticated, token, user, logout } = useAuthStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,6 +37,10 @@ export default function Builder() {
   const [apiReady, setApiReady] = useState(true);
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [customThemePrompt, setCustomThemePrompt] = useState('');
+  const [showAddRelationship, setShowAddRelationship] = useState(false);
+  const [relFromMember, setRelFromMember] = useState('');
+  const [relToMember, setRelToMember] = useState('');
+  const [relType, setRelType] = useState('parent');
 
   useEffect(() => {
     checkGenerationStatus()
@@ -86,6 +97,15 @@ export default function Builder() {
   const handleThemeSelect = (themeId) => {
     setTheme(themeId);
     setShowCustomTheme(themeId === 'custom');
+  };
+
+  const handleAddRelationship = () => {
+    if (!relFromMember || !relToMember || relFromMember === relToMember) return;
+    addRelationship(relFromMember, relToMember, relType);
+    setRelFromMember('');
+    setRelToMember('');
+    setRelType('parent');
+    setShowAddRelationship(false);
   };
 
   const currentTheme = getTheme(selectedTheme);
@@ -225,11 +245,105 @@ export default function Builder() {
 
               {/* Relationships */}
               <div className="card p-4 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Relationships</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-base sm:text-lg font-semibold text-white">Relationships</h2>
+                  {members.length >= 2 && (
+                    <button
+                      onClick={() => setShowAddRelationship(!showAddRelationship)}
+                      className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-6 flex items-center gap-1.5"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Relationship
+                    </button>
+                  )}
+                </div>
+
                 {members.length < 2 ? (
                   <p className="text-gray-500 text-xs sm:text-sm">Add at least 2 members to define relationships</p>
                 ) : (
-                  <RelationshipList />
+                  <>
+                    {/* Inline Add Relationship Form */}
+                    {showAddRelationship && (
+                      <div className="mb-4 p-4 bg-surface-800 border border-primary-500/30 rounded-lg">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                          <select
+                            value={relFromMember}
+                            onChange={(e) => setRelFromMember(e.target.value)}
+                            className="input text-sm"
+                          >
+                            <option value="">Select person...</option>
+                            {members.map((m) => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={relType}
+                            onChange={(e) => setRelType(e.target.value)}
+                            className="input text-sm"
+                          >
+                            {RELATIONSHIP_TYPES.map((type) => (
+                              <option key={type.id} value={type.id}>
+                                {type.icon} {type.label}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={relToMember}
+                            onChange={(e) => setRelToMember(e.target.value)}
+                            className="input text-sm"
+                          >
+                            <option value="">Select person...</option>
+                            {members.filter(m => m.id !== relFromMember).map((m) => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {relFromMember && relToMember && (
+                          <div className="mb-3 text-sm text-center text-primary-400">
+                            {members.find(m => m.id === relFromMember)?.name} is {RELATIONSHIP_TYPES.find(t => t.id === relType)?.label.toLowerCase()} {members.find(m => m.id === relToMember)?.name}
+                          </div>
+                        )}
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => setShowAddRelationship(false)}
+                            className="btn-ghost text-xs sm:text-sm py-1.5 px-3"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleAddRelationship}
+                            disabled={!relFromMember || !relToMember}
+                            className="btn-primary text-xs sm:text-sm py-1.5 px-4 disabled:opacity-50"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty state with prominent button */}
+                    {relationships.length === 0 && !showAddRelationship ? (
+                      <div className="text-center py-6 sm:py-8 border-2 border-dashed border-surface-700 rounded-lg">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 rounded-full bg-surface-800 flex items-center justify-center">
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-400 mb-1 text-sm">No relationships yet</p>
+                        <p className="text-gray-600 text-xs mb-4">Connect your family members</p>
+                        <button
+                          onClick={() => setShowAddRelationship(true)}
+                          className="btn-primary text-xs sm:text-sm py-2 px-4"
+                        >
+                          Add First Relationship
+                        </button>
+                      </div>
+                    ) : (
+                      <RelationshipList />
+                    )}
+                  </>
                 )}
               </div>
 

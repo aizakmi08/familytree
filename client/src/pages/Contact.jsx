@@ -81,8 +81,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-white font-medium">Email</h3>
-                    <a href="mailto:support@heritageai.today" className="text-gray-400 hover:text-primary-400 transition-colors">
-                      support@heritageai.today
+                    <a href="mailto:addwish80@gmail.com" className="text-gray-400 hover:text-primary-400 transition-colors">
+                      addwish80@gmail.com
                     </a>
                   </div>
                 </div>
@@ -126,7 +126,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="text-white text-sm font-medium mb-1">Are my photos stored?</h4>
-                    <p className="text-gray-500 text-sm">Photos are deleted within 24 hours of generation.</p>
+                    <p className="text-gray-500 text-sm">No. Photos are processed temporarily and immediately deleted - we don't store them.</p>
                   </div>
                 </div>
               </div>

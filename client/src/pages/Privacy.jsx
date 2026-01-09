@@ -26,82 +26,65 @@ export default function Privacy() {
       <div className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl sm:text-4xl font-bold text-white mb-4 sm:mb-8">Privacy Policy</h1>
-          <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">Last updated: January 8, 2026</p>
+          <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">Last updated: January 9, 2026</p>
 
           <div className="prose prose-invert max-w-none space-y-6 sm:space-y-8">
             <section>
               <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">1. Information We Collect</h2>
               <p className="text-gray-400 leading-relaxed mb-4">
-                When you use Heritage AI, we collect the following types of information:
+                When you use Heritage AI, we collect minimal information necessary to provide our service:
               </p>
               <ul className="list-disc list-inside text-gray-400 space-y-2">
-                <li><strong className="text-white">Account Information:</strong> Email address, name, and password when you create an account</li>
-                <li><strong className="text-white">Family Data:</strong> Names, birth dates, and relationships you enter to create your family tree</li>
-                <li><strong className="text-white">Photos:</strong> Images you upload of family members for AI generation</li>
-                <li><strong className="text-white">Payment Information:</strong> Processed securely through Stripe; we do not store card details</li>
-                <li><strong className="text-white">Usage Data:</strong> How you interact with our service to improve functionality</li>
+                <li><strong className="text-white">Account Information:</strong> Email address and name when you create an account</li>
+                <li><strong className="text-white">Payment Information:</strong> Processed securely through our payment provider; we do not store card details</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">2. How We Use Your Information</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">2. Family Data & Photos - We Do NOT Store</h2>
+              <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4 mb-4">
+                <p className="text-primary-400 font-medium">
+                  Important: We do NOT permanently store your family member information or photos.
+                </p>
+              </div>
               <ul className="list-disc list-inside text-gray-400 space-y-2">
-                <li>Generate AI-powered family tree artwork based on your input</li>
-                <li>Process payments for premium downloads</li>
-                <li>Send important service updates and communications</li>
-                <li>Improve our AI models and service quality</li>
-                <li>Prevent fraud and ensure platform security</li>
+                <li>Family member names, dates, and relationships are processed temporarily and not saved to any database</li>
+                <li>Photos you upload are used only during the generation process and are immediately deleted afterward</li>
+                <li>We have no access to your family data after you leave our website</li>
+                <li>Your privacy is our top priority - your family information stays with you</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">3. Photo Storage & Processing</h2>
-              <p className="text-gray-400 leading-relaxed mb-4">
-                Photos you upload are:
-              </p>
-              <ul className="list-disc list-inside text-gray-400 space-y-2">
-                <li>Temporarily stored on Cloudinary for AI processing</li>
-                <li>Used only to generate your family tree artwork</li>
-                <li>Not shared with third parties for any purpose</li>
-                <li>Automatically deleted after 24 hours of generation</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">4. Data Security</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">3. Your Gallery</h2>
               <p className="text-gray-400 leading-relaxed">
-                We implement industry-standard security measures including encrypted connections (HTTPS),
-                secure password hashing, and protected database access. Payment processing is handled
-                entirely by Stripe, a PCI-DSS compliant payment processor.
+                When you create an account and generate family trees, your generated artwork is saved to your personal gallery.
+                Your gallery is tied to your account, meaning you can access the same gallery from any device when logged in
+                with the same account. Only you can see your gallery - it is private and not shared with anyone.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">5. Third-Party Services</h2>
-              <p className="text-gray-400 leading-relaxed mb-4">We use the following third-party services:</p>
-              <ul className="list-disc list-inside text-gray-400 space-y-2">
-                <li><strong className="text-white">Kie AI:</strong> For generating family tree artwork</li>
-                <li><strong className="text-white">Cloudinary:</strong> For image storage and processing</li>
-                <li><strong className="text-white">Stripe:</strong> For secure payment processing</li>
-                <li><strong className="text-white">MongoDB Atlas:</strong> For secure data storage</li>
-                <li><strong className="text-white">Google:</strong> For optional Google Sign-In authentication</li>
-              </ul>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">4. Data Security</h2>
+              <p className="text-gray-400 leading-relaxed">
+                We implement industry-standard security measures including encrypted connections (HTTPS)
+                and secure password handling. Payment processing is handled entirely by a PCI-DSS compliant
+                payment processor.
+              </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">6. Your Rights</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">5. Your Rights</h2>
               <p className="text-gray-400 leading-relaxed mb-4">You have the right to:</p>
               <ul className="list-disc list-inside text-gray-400 space-y-2">
-                <li>Access your personal data</li>
-                <li>Request correction of inaccurate data</li>
-                <li>Request deletion of your account and data</li>
-                <li>Export your data in a portable format</li>
+                <li>Access your account information</li>
+                <li>Request deletion of your account</li>
                 <li>Opt out of marketing communications</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">7. Cookies</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">6. Cookies</h2>
               <p className="text-gray-400 leading-relaxed">
                 We use essential cookies to maintain your login session and preferences.
                 We do not use tracking cookies or share data with advertisers.
@@ -109,29 +92,27 @@ export default function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">8. Children's Privacy</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">7. Children's Privacy</h2>
               <p className="text-gray-400 leading-relaxed">
                 Heritage AI is not intended for children under 13. We do not knowingly collect
-                personal information from children under 13. If you believe a child has provided
-                us with personal information, please contact us immediately.
+                personal information from children under 13.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">9. Changes to This Policy</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">8. Changes to This Policy</h2>
               <p className="text-gray-400 leading-relaxed">
-                We may update this Privacy Policy from time to time. We will notify you of any
-                significant changes by email or through the service. Your continued use of Heritage AI
+                We may update this Privacy Policy from time to time. Your continued use of Heritage AI
                 after changes constitutes acceptance of the updated policy.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">10. Contact Us</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">9. Contact Us</h2>
               <p className="text-gray-400 leading-relaxed">
-                If you have questions about this Privacy Policy or your data, please contact us at:{' '}
-                <a href="mailto:privacy@heritageai.today" className="text-primary-400 hover:text-primary-300">
-                  privacy@heritageai.today
+                If you have questions about this Privacy Policy, please contact us at:{' '}
+                <a href="mailto:addwish80@gmail.com" className="text-primary-400 hover:text-primary-300">
+                  addwish80@gmail.com
                 </a>
               </p>
             </section>

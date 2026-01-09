@@ -87,11 +87,11 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">6. Pricing and Payments</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">6. Pricing and Payments</h2>
               <ul className="list-disc list-inside text-gray-400 space-y-2">
                 <li><strong className="text-white">Free:</strong> Generate family tree artwork with watermark</li>
                 <li><strong className="text-white">$2.99 per download:</strong> HD quality without watermark</li>
-                <li>All payments are processed securely through Stripe</li>
+                <li>All payments are processed securely</li>
                 <li>Prices may change with notice to users</li>
                 <li>All sales are final unless otherwise required by law</li>
               </ul>
@@ -168,11 +168,11 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">14. Contact</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">14. Contact</h2>
               <p className="text-gray-400 leading-relaxed">
                 For questions about these Terms of Service, please contact us at:{' '}
-                <a href="mailto:legal@heritageai.today" className="text-primary-400 hover:text-primary-300">
-                  legal@heritageai.today
+                <a href="mailto:addwish80@gmail.com" className="text-primary-400 hover:text-primary-300">
+                  addwish80@gmail.com
                 </a>
               </p>
             </section>
