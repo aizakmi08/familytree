@@ -24,14 +24,16 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
   const [selectedRelationType, setSelectedRelationType] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [pendingRelationships, setPendingRelationships] = useState([]);
+  const [formInitialized, setFormInitialized] = useState(false);
 
+  // Initialize form when modal opens - only run once per open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !formInitialized) {
       if (editMember) {
         setFormData({
           name: editMember.name || '',
-          birthYear: editMember.birthYear || '',
-          deathYear: editMember.deathYear || '',
+          birthYear: editMember.birthYear != null ? String(editMember.birthYear) : '',
+          deathYear: editMember.deathYear != null ? String(editMember.deathYear) : '',
           photoUrl: editMember.photoUrl || '',
         });
         setPhotoPreview(editMember.photoUrl || null);
@@ -52,8 +54,16 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
       }
       setSelectedRelationType(null);
       setSelectedMembers([]);
+      setFormInitialized(true);
     }
-  }, [isOpen, editMember, relationships]);
+  }, [isOpen, editMember, relationships, formInitialized]);
+
+  // Reset form initialized flag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormInitialized(false);
+    }
+  }, [isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -163,6 +173,7 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
     setSelectedRelationType(null);
     setSelectedMembers([]);
     setPendingRelationships([]);
+    setFormInitialized(false);
     onClose();
   };
 
