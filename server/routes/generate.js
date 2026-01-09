@@ -262,7 +262,7 @@ router.post('/', optionalAuth, async (req, res) => {
         console.log('💾 Saving clean version for downloads...');
         const cleanVersion = await saveGeneratedImage(finalImageUrl);
         // Store clean URL securely and get an ID
-        imageId = storeCleanUrl(cleanVersion.url);
+        imageId = await storeCleanUrl(cleanVersion.url);
         console.log('🔒 Clean URL stored securely with ID:', imageId);
 
         // All generated previews get a watermark with the tree name
@@ -276,12 +276,12 @@ router.post('/', optionalAuth, async (req, res) => {
           warning: 'Image saved to temporary storage. Please regenerate if the image expires.'
         };
         // Store the temp URL as clean (it will expire anyway)
-        imageId = storeCleanUrl(finalImageUrl);
+        imageId = await storeCleanUrl(finalImageUrl);
       }
     } else {
       // Use Kie AI URL directly if Cloudinary not configured
       finalResult = { url: finalImageUrl };
-      imageId = storeCleanUrl(finalImageUrl);
+      imageId = await storeCleanUrl(finalImageUrl);
     }
 
     // No credits to deduct - all generations are FREE
