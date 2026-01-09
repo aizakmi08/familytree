@@ -3,6 +3,7 @@
 
 import express from 'express';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import { buildPrompt, buildContinuationPrompt } from '../services/promptBuilder.js';
 import { generateImage, isConfigured as isKieAIConfigured } from '../services/kieai.js';
 import {
@@ -12,12 +13,12 @@ import {
   uploadMemberPhotos,
 } from '../services/compositor.js';
 import { optionalAuth } from '../middleware/auth.js';
+import ImageStore from '../models/ImageStore.js';
 
-// In-memory store for clean URLs (secure - never exposed to client)
-// In production, use Redis or a database
+// In-memory fallback store (used when MongoDB is not connected)
 const cleanUrlStore = new Map();
 
-// Clean up old entries after 24 hours
+// Clean up old entries after 24 hours (for in-memory fallback)
 setInterval(() => {
   const now = Date.now();
   for (const [id, data] of cleanUrlStore.entries()) {
@@ -25,16 +26,46 @@ setInterval(() => {
       cleanUrlStore.delete(id);
     }
   }
-}, 60 * 60 * 1000); // Run every hour
+}, 60 * 60 * 1000);
+
+// Check if MongoDB is connected
+function isMongoConnected() {
+  return mongoose.connection.readyState === 1;
+}
 
 // Export for use in payments route
-export function getCleanUrl(imageId) {
+export async function getCleanUrl(imageId) {
+  // Try MongoDB first
+  if (isMongoConnected()) {
+    try {
+      const record = await ImageStore.findOne({ imageId });
+      if (record) {
+        return record.cleanUrl;
+      }
+    } catch (error) {
+      console.error('MongoDB getCleanUrl error:', error.message);
+    }
+  }
+
+  // Fallback to in-memory
   const data = cleanUrlStore.get(imageId);
   return data?.cleanUrl || null;
 }
 
-export function storeCleanUrl(cleanUrl) {
+export async function storeCleanUrl(cleanUrl) {
   const imageId = crypto.randomBytes(16).toString('hex');
+
+  // Try MongoDB first
+  if (isMongoConnected()) {
+    try {
+      await ImageStore.create({ imageId, cleanUrl });
+      return imageId;
+    } catch (error) {
+      console.error('MongoDB storeCleanUrl error:', error.message);
+    }
+  }
+
+  // Fallback to in-memory
   cleanUrlStore.set(imageId, {
     cleanUrl,
     createdAt: Date.now(),

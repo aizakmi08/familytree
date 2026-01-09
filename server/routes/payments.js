@@ -35,7 +35,7 @@ router.post('/create-checkout', async (req, res) => {
     }
 
     // Verify the imageId is valid (clean URL exists)
-    const cleanUrl = getCleanUrl(imageId);
+    const cleanUrl = await getCleanUrl(imageId);
     if (!cleanUrl) {
       return res.status(400).json({ error: 'Invalid or expired image ID. Please regenerate your family tree.' });
     }
@@ -112,7 +112,7 @@ router.get('/verify-session/:sessionId', async (req, res) => {
     if (session.payment_status === 'paid') {
       // SECURITY: Retrieve clean URL server-side using the stored imageId
       const imageId = session.metadata?.imageId;
-      const cleanUrl = imageId ? getCleanUrl(imageId) : null;
+      const cleanUrl = imageId ? await getCleanUrl(imageId) : null;
 
       if (!cleanUrl) {
         // Fallback for legacy sessions or expired images
