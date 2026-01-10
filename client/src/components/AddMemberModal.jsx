@@ -1,196 +1,219 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFamilyStore } from '../store/familyStore';
 
+const RELATIONSHIP_TYPES = [
+  { id: 'child', label: 'Child of', icon: '↑', allowMultiple: true },
+  { id: 'parent', label: 'Parent of', icon: '↓', allowMultiple: true },
+  { id: 'spouse', label: 'Spouse of', icon: '↔', allowMultiple: false },
+  { id: 'sibling', label: 'Sibling of', icon: '=', allowMultiple: true },
+];
+
 export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
-  const { members, addMember, updateMember, addRelationship, relationships, deleteRelationship } = useFamilyStore();
+  const { members, addMember, updateMember, addRelationship, relationships } = useFamilyStore();
   const fileInputRef = useRef(null);
   const nameInputRef = useRef(null);
 
-  // Form state
-  const [name, setName] = useState('');
-  const [birthYear, setBirthYear] = useState('');
-  const [deathYear, setDeathYear] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    birthYear: '',
+    deathYear: '',
+    photoUrl: '',
+  });
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  // Relationship state - simple dropdown approach
-  const [relationType, setRelationType] = useState('');
-  const [relatedMemberId, setRelatedMemberId] = useState('');
+  const [selectedRelationType, setSelectedRelationType] = useState(null);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [pendingRelationships, setPendingRelationships] = useState([]);
+  const [formInitialized, setFormInitialized] = useState(false);
 
-  // UI state
-  const [error, setError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Get existing relationships for this member (when editing)
-  const existingRelationships = editMember
-    ? relationships.filter(r => r.from === editMember.id || r.to === editMember.id)
-    : [];
-
-  // Initialize form when modal opens
+  // Initialize form when modal opens - only once per open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !formInitialized) {
       if (editMember) {
-        setName(editMember.name || '');
-        setBirthYear(editMember.birthYear != null ? String(editMember.birthYear) : '');
-        setDeathYear(editMember.deathYear != null ? String(editMember.deathYear) : '');
-        setPhotoUrl(editMember.photoUrl || '');
+        setFormData({
+          name: editMember.name || '',
+          birthYear: editMember.birthYear != null ? String(editMember.birthYear) : '',
+          deathYear: editMember.deathYear != null ? String(editMember.deathYear) : '',
+          photoUrl: editMember.photoUrl || '',
+        });
         setPhotoPreview(editMember.photoUrl || null);
+
+        // Load existing relationships for this member
+        const existingRels = relationships
+          .filter(r => r.from === editMember.id || r.to === editMember.id)
+          .map(r => ({
+            type: r.type,
+            memberId: r.from === editMember.id ? r.to : r.from,
+            direction: r.from === editMember.id ? 'from' : 'to',
+            id: r.id,
+            isExisting: true,
+          }));
+        setPendingRelationships(existingRels);
       } else {
-        resetForm();
+        setFormData({ name: '', birthYear: '', deathYear: '', photoUrl: '' });
+        setPhotoPreview(null);
+        setPendingRelationships([]);
       }
-      setError('');
-      // Focus name input after a short delay
+      setSelectedRelationType(null);
+      setSelectedMembers([]);
+      setFormInitialized(true);
+
+      // Focus name input
       setTimeout(() => nameInputRef.current?.focus(), 100);
     }
-  }, [isOpen, editMember]);
+  }, [isOpen, editMember, relationships, formInitialized]);
 
-  const resetForm = () => {
-    setName('');
-    setBirthYear('');
-    setDeathYear('');
-    setPhotoUrl('');
-    setPhotoPreview(null);
-    setRelationType('');
-    setRelatedMemberId('');
-    setError('');
+  // Reset when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormInitialized(false);
+    }
+  }, [isOpen]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePhotoSelect = (e) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Photo must be less than 5MB');
-        return;
-      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
-        setPhotoUrl(reader.result);
-        setError('');
+        setFormData(prev => ({ ...prev, photoUrl: reader.result }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removePhoto = (e) => {
-    e.stopPropagation();
-    setPhotoPreview(null);
-    setPhotoUrl('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleMemberToggle = (memberId) => {
+    const relType = RELATIONSHIP_TYPES.find(t => t.id === selectedRelationType);
+    if (relType?.allowMultiple) {
+      setSelectedMembers(prev =>
+        prev.includes(memberId)
+          ? prev.filter(id => id !== memberId)
+          : [...prev, memberId]
+      );
+    } else {
+      setSelectedMembers([memberId]);
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleAddRelationships = () => {
+    if (!selectedRelationType || selectedMembers.length === 0) return;
+
+    const newRels = selectedMembers.map(memberId => ({
+      type: selectedRelationType,
+      memberId,
+      direction: 'from',
+      isNew: true,
+    }));
+
+    setPendingRelationships(prev => [...prev, ...newRels]);
+    setSelectedRelationType(null);
+    setSelectedMembers([]);
+  };
+
+  const handleRemovePendingRelationship = (index) => {
+    setPendingRelationships(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getMemberName = (memberId) => {
+    return members.find(m => m.id === memberId)?.name || 'Unknown';
+  };
+
+  const getRelationshipLabel = (rel) => {
+    const memberName = getMemberName(rel.memberId);
+    switch (rel.type) {
+      case 'child': return `Child of ${memberName}`;
+      case 'parent': return `Parent of ${memberName}`;
+      case 'spouse': return `Spouse of ${memberName}`;
+      case 'sibling': return `Sibling of ${memberName}`;
+      default: return memberName;
+    }
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      setError('Please enter a name');
-      nameInputRef.current?.focus();
-      return;
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) return;
+
+    // Create member data
+    const memberData = {
+      name: trimmedName,
+      birthYear: formData.birthYear ? parseInt(formData.birthYear) : null,
+      deathYear: formData.deathYear ? parseInt(formData.deathYear) : null,
+      photoUrl: formData.photoUrl || null,
+    };
+
+    let memberId;
+
+    // Add or update member
+    if (editMember) {
+      updateMember(editMember.id, memberData);
+      memberId = editMember.id;
+    } else {
+      memberId = addMember(memberData);
     }
 
-    if (birthYear && deathYear && parseInt(deathYear) < parseInt(birthYear)) {
-      setError('Death year cannot be before birth year');
-      return;
-    }
-
-    setIsSaving(true);
-    setError('');
-
-    try {
-      const memberData = {
-        name: trimmedName,
-        birthYear: birthYear ? parseInt(birthYear) : null,
-        deathYear: deathYear ? parseInt(deathYear) : null,
-        photoUrl: photoUrl || null,
-      };
-
-      let memberId;
-
-      if (editMember) {
-        updateMember(editMember.id, memberData);
-        memberId = editMember.id;
-      } else {
-        memberId = addMember(memberData);
-      }
-
-      // Add relationship if selected (for new members)
-      if (!editMember && relationType && relatedMemberId) {
-        if (relationType === 'child') {
-          // "New member is child of X" -> X is parent of new member
-          addRelationship(relatedMemberId, memberId, 'parent');
-        } else if (relationType === 'parent') {
-          // "New member is parent of X" -> new member is parent of X
-          addRelationship(memberId, relatedMemberId, 'parent');
-        } else {
-          addRelationship(memberId, relatedMemberId, relationType);
+    // Add new relationships
+    pendingRelationships
+      .filter(rel => rel.isNew)
+      .forEach(rel => {
+        if (rel.type === 'child') {
+          // "This member is child of X" -> X is parent of this member
+          addRelationship(rel.memberId, memberId, 'parent');
+        } else if (rel.type === 'parent') {
+          // "This member is parent of X" -> this member is parent of X
+          addRelationship(memberId, rel.memberId, 'parent');
+        } else if (rel.type === 'spouse') {
+          addRelationship(memberId, rel.memberId, 'spouse');
+        } else if (rel.type === 'sibling') {
+          addRelationship(memberId, rel.memberId, 'sibling');
         }
-      }
+      });
 
-      // Small delay for visual feedback
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      handleClose();
-    } catch (err) {
-      setError('Failed to save. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
+    // Close modal immediately after save
+    handleClose();
   };
 
   const handleClose = () => {
-    resetForm();
+    setFormData({ name: '', birthYear: '', deathYear: '', photoUrl: '' });
+    setPhotoPreview(null);
+    setSelectedRelationType(null);
+    setSelectedMembers([]);
+    setPendingRelationships([]);
+    setFormInitialized(false);
     onClose();
   };
 
-  const handleDeleteRelationship = (relId) => {
-    deleteRelationship(relId);
-  };
-
-  const getRelationshipDisplay = (rel) => {
-    const otherMemberId = rel.from === editMember?.id ? rel.to : rel.from;
-    const otherMember = members.find(m => m.id === otherMemberId);
-    if (!otherMember) return null;
-
-    const isFrom = rel.from === editMember?.id;
-
-    if (rel.type === 'parent') {
-      return isFrom
-        ? `Parent of ${otherMember.name}`
-        : `Child of ${otherMember.name}`;
-    } else if (rel.type === 'spouse') {
-      return `Spouse of ${otherMember.name}`;
-    } else if (rel.type === 'sibling') {
-      return `Sibling of ${otherMember.name}`;
-    }
-    return `Related to ${otherMember.name}`;
-  };
-
-  // Available members for relationship (exclude self)
   const availableMembers = members.filter(m => m.id !== editMember?.id);
+
+  const getSelectableMembers = () => {
+    if (!selectedRelationType) return [];
+    const alreadyRelated = pendingRelationships
+      .filter(r => r.type === selectedRelationType)
+      .map(r => r.memberId);
+    return availableMembers.filter(m => !alreadyRelated.includes(m.id));
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-surface-900 rounded-2xl border border-surface-700 w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-surface-900 rounded-xl border border-surface-700 w-full max-w-lg max-h-[90vh] overflow-hidden animate-fade-in flex flex-col">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-surface-800">
+        <div className="px-6 py-4 border-b border-surface-800 flex-shrink-0">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-white">
-              {editMember ? 'Edit Member' : 'Add Family Member'}
+            <h2 className="text-lg font-semibold text-white">
+              {editMember ? 'Edit Member' : 'Add Member'}
             </h2>
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 -mr-2 text-gray-500 hover:text-white hover:bg-surface-800 rounded-lg transition-colors"
+              className="text-gray-500 hover:text-white transition-colors p-1"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -200,51 +223,46 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-180px)]">
-          <div className="p-6 space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                {error}
-              </div>
-            )}
-
-            {/* Photo Upload */}
-            <div className="flex flex-col items-center">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-5">
+            {/* Photo & Name */}
+            <div className="flex items-center gap-4">
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="relative w-24 h-24 rounded-full bg-surface-800 border-2 border-dashed border-surface-600 hover:border-primary-500 cursor-pointer flex items-center justify-center overflow-hidden transition-all group"
+                className="relative w-16 h-16 rounded-full bg-surface-800 border border-surface-600 hover:border-surface-500 cursor-pointer flex items-center justify-center overflow-hidden transition-colors flex-shrink-0"
               >
                 {photoPreview ? (
-                  <>
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white text-xs">Change</span>
-                    </div>
-                  </>
+                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="text-center">
-                    <svg className="w-8 h-8 text-gray-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-xs text-gray-500">Add Photo</span>
-                  </div>
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
                 )}
                 {photoPreview && (
                   <button
                     type="button"
-                    onClick={removePhoto}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPhotoPreview(null);
+                      setFormData(prev => ({ ...prev, photoUrl: '' }));
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    ×
                   </button>
                 )}
               </div>
+              <input
+                ref={nameInputRef}
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="input flex-1"
+                placeholder="Full Name"
+                autoComplete="off"
+              />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -252,157 +270,162 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
                 onChange={handlePhotoSelect}
                 className="hidden"
               />
-              <p className="text-xs text-gray-600 mt-2">Optional - helps with recognition</p>
-            </div>
-
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
-                Full Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                ref={nameInputRef}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input w-full text-base"
-                placeholder="e.g. John Smith"
-                autoComplete="off"
-              />
             </div>
 
             {/* Years */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Birth Year</label>
+                <label className="label">Birth Year</label>
                 <input
                   type="number"
-                  value={birthYear}
-                  onChange={(e) => setBirthYear(e.target.value)}
-                  className="input w-full"
+                  name="birthYear"
+                  value={formData.birthYear}
+                  onChange={handleInputChange}
+                  className="input"
                   placeholder="1950"
-                  min="1000"
-                  max={new Date().getFullYear()}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Death Year</label>
+                <label className="label">Death Year</label>
                 <input
                   type="number"
-                  value={deathYear}
-                  onChange={(e) => setDeathYear(e.target.value)}
-                  className="input w-full"
+                  name="deathYear"
+                  value={formData.deathYear}
+                  onChange={handleInputChange}
+                  className="input"
                   placeholder="Optional"
-                  min="1000"
-                  max={new Date().getFullYear() + 1}
                 />
               </div>
             </div>
 
-            {/* Relationship - Only show for new members when there are existing members */}
-            {!editMember && availableMembers.length > 0 && (
-              <div className="border-t border-surface-800 pt-6">
-                <label className="block text-sm font-medium text-gray-400 mb-3">
-                  Relationship <span className="text-gray-600">(optional)</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <select
-                    value={relationType}
-                    onChange={(e) => {
-                      setRelationType(e.target.value);
-                      if (!e.target.value) setRelatedMemberId('');
-                    }}
-                    className="input"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="child">Child of</option>
-                    <option value="parent">Parent of</option>
-                    <option value="spouse">Spouse of</option>
-                    <option value="sibling">Sibling of</option>
-                  </select>
-                  <select
-                    value={relatedMemberId}
-                    onChange={(e) => setRelatedMemberId(e.target.value)}
-                    className="input"
-                    disabled={!relationType}
-                  >
-                    <option value="">Select person...</option>
-                    {availableMembers.map(m => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {relationType && relatedMemberId && (
-                  <p className="text-sm text-primary-400 mt-2">
-                    {name || 'This person'} is {relationType === 'child' ? 'child of' : relationType === 'parent' ? 'parent of' : relationType + ' of'} {members.find(m => m.id === relatedMemberId)?.name}
-                  </p>
-                )}
-              </div>
-            )}
+            {/* Relationships */}
+            {availableMembers.length > 0 && (
+              <div className="border-t border-surface-800 pt-5">
+                <label className="label">Relationships</label>
 
-            {/* Existing Relationships - Only show when editing */}
-            {editMember && existingRelationships.length > 0 && (
-              <div className="border-t border-surface-800 pt-6">
-                <label className="block text-sm font-medium text-gray-400 mb-3">
-                  Current Relationships
-                </label>
-                <div className="space-y-2">
-                  {existingRelationships.map(rel => {
-                    const display = getRelationshipDisplay(rel);
-                    if (!display) return null;
-                    return (
+                {/* Pending Relationships */}
+                {pendingRelationships.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {pendingRelationships.map((rel, index) => (
                       <div
-                        key={rel.id}
-                        className="flex items-center justify-between bg-surface-800 rounded-lg px-3 py-2"
+                        key={index}
+                        className="flex items-center gap-2 bg-primary-500/10 border border-primary-500/20 text-primary-400 px-3 py-1.5 rounded-lg text-sm"
                       >
-                        <span className="text-sm text-gray-300">{display}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteRelationship(rel.id)}
-                          className="p-1 text-gray-500 hover:text-red-400 transition-colors"
-                          title="Remove relationship"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                        <span>{getRelationshipLabel(rel)}</span>
+                        {rel.isNew && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePendingRelationship(index)}
+                            className="hover:text-primary-300"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Relationship Selector */}
+                {!selectedRelationType ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    {RELATIONSHIP_TYPES.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setSelectedRelationType(type.id)}
+                        className="p-3 rounded-lg border border-surface-700 hover:border-surface-500 bg-surface-800 transition-all text-center"
+                      >
+                        <div className="text-lg text-gray-400 mb-1">{type.icon}</div>
+                        <span className="text-xs text-gray-500">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">
+                        {RELATIONSHIP_TYPES.find(t => t.id === selectedRelationType)?.label}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRelationType(null);
+                          setSelectedMembers([]);
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {getSelectableMembers().length === 0 ? (
+                        <p className="text-sm text-gray-600 text-center py-2">No members available</p>
+                      ) : (
+                        getSelectableMembers().map((member) => {
+                          const isSelected = selectedMembers.includes(member.id);
+                          return (
+                            <button
+                              key={member.id}
+                              type="button"
+                              onClick={() => handleMemberToggle(member.id)}
+                              className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${
+                                isSelected
+                                  ? 'border-primary-500 bg-primary-500/10'
+                                  : 'border-surface-700 hover:border-surface-600 bg-surface-800'
+                              }`}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {member.photoUrl ? (
+                                  <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-gray-400 text-sm">{member.name.charAt(0)}</span>
+                                )}
+                              </div>
+                              <span className="flex-1 text-left text-sm text-white">{member.name}</span>
+                              {isSelected && (
+                                <svg className="w-4 h-4 text-primary-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {selectedMembers.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleAddRelationships}
+                        className="w-full btn-secondary py-2 text-sm"
+                      >
+                        Add Relationship
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Actions */}
-          <div className="border-t border-surface-800 px-6 py-4 bg-surface-900/50">
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex-1 btn-secondary py-3"
-                disabled={isSaving}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={!name.trim() || isSaving}
-                className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  editMember ? 'Save Changes' : 'Add Member'
-                )}
-              </button>
-            </div>
+          <div className="border-t border-surface-800 px-6 py-4 flex gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!formData.name.trim()}
+              className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {editMember ? 'Save' : 'Add'}
+            </button>
           </div>
         </form>
       </div>
