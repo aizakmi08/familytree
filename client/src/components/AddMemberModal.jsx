@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useFamilyStore } from '../store/familyStore';
 
 const RELATIONSHIP_TYPES = [
@@ -12,68 +12,80 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
   const { members, addMember, updateMember, addRelationship, relationships } = useFamilyStore();
   const fileInputRef = useRef(null);
   const nameInputRef = useRef(null);
+  const hasInitialized = useRef(false);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    birthYear: '',
-    deathYear: '',
-    photoUrl: '',
-  });
+  // Form fields
+  const [name, setName] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [deathYear, setDeathYear] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [photoPreview, setPhotoPreview] = useState(null);
 
+  // Relationship state
   const [selectedRelationType, setSelectedRelationType] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [pendingRelationships, setPendingRelationships] = useState([]);
-  const [formInitialized, setFormInitialized] = useState(false);
 
-  // Initialize form when modal opens - only once per open
-  useEffect(() => {
-    if (isOpen && !formInitialized) {
-      if (editMember) {
-        setFormData({
-          name: editMember.name || '',
-          birthYear: editMember.birthYear != null ? String(editMember.birthYear) : '',
-          deathYear: editMember.deathYear != null ? String(editMember.deathYear) : '',
-          photoUrl: editMember.photoUrl || '',
-        });
-        setPhotoPreview(editMember.photoUrl || null);
+  // Reset all form state
+  const resetForm = useCallback(() => {
+    setName('');
+    setBirthYear('');
+    setDeathYear('');
+    setPhotoUrl('');
+    setPhotoPreview(null);
+    setSelectedRelationType(null);
+    setSelectedMembers([]);
+    setPendingRelationships([]);
+    hasInitialized.current = false;
+  }, []);
 
-        // Load existing relationships for this member
-        const existingRels = relationships
-          .filter(r => r.from === editMember.id || r.to === editMember.id)
-          .map(r => ({
-            type: r.type,
-            memberId: r.from === editMember.id ? r.to : r.from,
-            direction: r.from === editMember.id ? 'from' : 'to',
-            id: r.id,
-            isExisting: true,
-          }));
-        setPendingRelationships(existingRels);
-      } else {
-        setFormData({ name: '', birthYear: '', deathYear: '', photoUrl: '' });
-        setPhotoPreview(null);
-        setPendingRelationships([]);
-      }
-      setSelectedRelationType(null);
-      setSelectedMembers([]);
-      setFormInitialized(true);
-
-      // Focus name input
-      setTimeout(() => nameInputRef.current?.focus(), 100);
-    }
-  }, [isOpen, editMember, relationships, formInitialized]);
-
-  // Reset when modal closes
+  // Initialize form when modal opens
   useEffect(() => {
     if (!isOpen) {
-      setFormInitialized(false);
+      // Reset the initialization flag when modal closes
+      hasInitialized.current = false;
+      return;
     }
-  }, [isOpen]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    // Only initialize once per modal open
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
+    if (editMember) {
+      // Edit mode - populate with existing data
+      setName(editMember.name || '');
+      setBirthYear(editMember.birthYear != null ? String(editMember.birthYear) : '');
+      setDeathYear(editMember.deathYear != null ? String(editMember.deathYear) : '');
+      setPhotoUrl(editMember.photoUrl || '');
+      setPhotoPreview(editMember.photoUrl || null);
+
+      // Load existing relationships
+      const existingRels = relationships
+        .filter(r => r.from === editMember.id || r.to === editMember.id)
+        .map(r => ({
+          type: r.type,
+          memberId: r.from === editMember.id ? r.to : r.from,
+          direction: r.from === editMember.id ? 'from' : 'to',
+          id: r.id,
+          isExisting: true,
+        }));
+      setPendingRelationships(existingRels);
+    } else {
+      // Add mode - clear form
+      setName('');
+      setBirthYear('');
+      setDeathYear('');
+      setPhotoUrl('');
+      setPhotoPreview(null);
+      setPendingRelationships([]);
+    }
+
+    setSelectedRelationType(null);
+    setSelectedMembers([]);
+
+    // Focus name input
+    setTimeout(() => nameInputRef.current?.focus(), 100);
+  }, [isOpen, editMember, relationships]);
 
   const handlePhotoSelect = (e) => {
     const file = e.target.files?.[0];
@@ -81,10 +93,17 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
-        setFormData(prev => ({ ...prev, photoUrl: reader.result }));
+        setPhotoUrl(reader.result);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const clearPhoto = (e) => {
+    e.stopPropagation();
+    setPhotoPreview(null);
+    setPhotoUrl('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleMemberToggle = (memberId) => {
@@ -106,7 +125,6 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
     const newRels = selectedMembers.map(memberId => ({
       type: selectedRelationType,
       memberId,
-      direction: 'from',
       isNew: true,
     }));
 
@@ -134,18 +152,23 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
     }
   };
 
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [resetForm, onClose]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const trimmedName = formData.name.trim();
+    const trimmedName = name.trim();
     if (!trimmedName) return;
 
     // Create member data
     const memberData = {
       name: trimmedName,
-      birthYear: formData.birthYear ? parseInt(formData.birthYear) : null,
-      deathYear: formData.deathYear ? parseInt(formData.deathYear) : null,
-      photoUrl: formData.photoUrl || null,
+      birthYear: birthYear ? parseInt(birthYear) : null,
+      deathYear: deathYear ? parseInt(deathYear) : null,
+      photoUrl: photoUrl || null,
     };
 
     let memberId;
@@ -158,26 +181,27 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
       memberId = addMember(memberData);
     }
 
-    // Combine pending relationships with any in-progress selection
-    // This handles the case where user selected a relationship but didn't click "Add Relationship"
-    let allNewRelationships = pendingRelationships.filter(rel => rel.isNew);
+    // Collect all new relationships (pending + any in-progress selection)
+    const allNewRelationships = [...pendingRelationships.filter(rel => rel.isNew)];
 
+    // Include any in-progress selection (user selected but didn't click "Add Relationship")
     if (selectedRelationType && selectedMembers.length > 0) {
-      const inProgressRels = selectedMembers.map(mid => ({
-        type: selectedRelationType,
-        memberId: mid,
-        isNew: true,
-      }));
-      allNewRelationships = [...allNewRelationships, ...inProgressRels];
+      selectedMembers.forEach(mid => {
+        allNewRelationships.push({
+          type: selectedRelationType,
+          memberId: mid,
+          isNew: true,
+        });
+      });
     }
 
-    // Add all new relationships
+    // Add all relationships to store
     allNewRelationships.forEach(rel => {
       if (rel.type === 'child') {
-        // "This member is child of X" -> X is parent of this member
+        // "This member is child of X" → X is parent of this member
         addRelationship(rel.memberId, memberId, 'parent');
       } else if (rel.type === 'parent') {
-        // "This member is parent of X" -> this member is parent of X
+        // "This member is parent of X" → this member is parent of X
         addRelationship(memberId, rel.memberId, 'parent');
       } else if (rel.type === 'spouse') {
         addRelationship(memberId, rel.memberId, 'spouse');
@@ -186,20 +210,11 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
       }
     });
 
-    // Close modal immediately after save
+    // Close modal
     handleClose();
   };
 
-  const handleClose = () => {
-    setFormData({ name: '', birthYear: '', deathYear: '', photoUrl: '' });
-    setPhotoPreview(null);
-    setSelectedRelationType(null);
-    setSelectedMembers([]);
-    setPendingRelationships([]);
-    setFormInitialized(false);
-    onClose();
-  };
-
+  // Available members for relationships (exclude self when editing)
   const availableMembers = members.filter(m => m.id !== editMember?.id);
 
   const getSelectableMembers = () => {
@@ -252,12 +267,7 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
                 {photoPreview && (
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPhotoPreview(null);
-                      setFormData(prev => ({ ...prev, photoUrl: '' }));
-                      if (fileInputRef.current) fileInputRef.current.value = '';
-                    }}
+                    onClick={clearPhoto}
                     className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                   >
                     ×
@@ -267,9 +277,8 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
               <input
                 ref={nameInputRef}
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="input flex-1"
                 placeholder="Full Name"
                 autoComplete="off"
@@ -289,9 +298,8 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
                 <label className="label">Birth Year</label>
                 <input
                   type="number"
-                  name="birthYear"
-                  value={formData.birthYear}
-                  onChange={handleInputChange}
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value)}
                   className="input"
                   placeholder="1950"
                 />
@@ -300,9 +308,8 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
                 <label className="label">Death Year</label>
                 <input
                   type="number"
-                  name="deathYear"
-                  value={formData.deathYear}
-                  onChange={handleInputChange}
+                  value={deathYear}
+                  onChange={(e) => setDeathYear(e.target.value)}
                   className="input"
                   placeholder="Optional"
                 />
@@ -432,7 +439,7 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
             </button>
             <button
               type="submit"
-              disabled={!formData.name.trim()}
+              disabled={!name.trim()}
               className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {editMember ? 'Save' : 'Add'}
