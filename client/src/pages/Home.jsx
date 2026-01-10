@@ -194,13 +194,13 @@ export default function Home() {
                     alt={`${item.theme} family tree example`}
                     className="w-full h-auto group-hover:scale-[1.02] transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-surface-950/50 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500" />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between bg-surface-950/60 backdrop-blur-sm rounded-xl p-3 -m-1">
                     <div>
-                      <h3 className="text-white font-semibold mb-1 text-lg">{item.theme}</h3>
-                      <p className="text-gray-400 text-sm">{item.description}</p>
+                      <h3 className="text-white font-bold mb-1 text-lg drop-shadow-lg">{item.theme}</h3>
+                      <p className="text-gray-300 text-sm drop-shadow-md">{item.description}</p>
                     </div>
                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0 translate-x-2">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
