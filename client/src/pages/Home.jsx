@@ -174,7 +174,7 @@ export default function Home() {
 
       {/* Showcase Gallery */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10 sm:mb-16">
             <span className="inline-block text-primary-400 text-sm font-medium tracking-wider uppercase mb-3">Real Results</span>
             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">See What You Can Create</h2>
