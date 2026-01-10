@@ -158,22 +158,33 @@ export default function AddMemberModal({ isOpen, onClose, editMember = null }) {
       memberId = addMember(memberData);
     }
 
-    // Add new relationships
-    pendingRelationships
-      .filter(rel => rel.isNew)
-      .forEach(rel => {
-        if (rel.type === 'child') {
-          // "This member is child of X" -> X is parent of this member
-          addRelationship(rel.memberId, memberId, 'parent');
-        } else if (rel.type === 'parent') {
-          // "This member is parent of X" -> this member is parent of X
-          addRelationship(memberId, rel.memberId, 'parent');
-        } else if (rel.type === 'spouse') {
-          addRelationship(memberId, rel.memberId, 'spouse');
-        } else if (rel.type === 'sibling') {
-          addRelationship(memberId, rel.memberId, 'sibling');
-        }
-      });
+    // Combine pending relationships with any in-progress selection
+    // This handles the case where user selected a relationship but didn't click "Add Relationship"
+    let allNewRelationships = pendingRelationships.filter(rel => rel.isNew);
+
+    if (selectedRelationType && selectedMembers.length > 0) {
+      const inProgressRels = selectedMembers.map(mid => ({
+        type: selectedRelationType,
+        memberId: mid,
+        isNew: true,
+      }));
+      allNewRelationships = [...allNewRelationships, ...inProgressRels];
+    }
+
+    // Add all new relationships
+    allNewRelationships.forEach(rel => {
+      if (rel.type === 'child') {
+        // "This member is child of X" -> X is parent of this member
+        addRelationship(rel.memberId, memberId, 'parent');
+      } else if (rel.type === 'parent') {
+        // "This member is parent of X" -> this member is parent of X
+        addRelationship(memberId, rel.memberId, 'parent');
+      } else if (rel.type === 'spouse') {
+        addRelationship(memberId, rel.memberId, 'spouse');
+      } else if (rel.type === 'sibling') {
+        addRelationship(memberId, rel.memberId, 'sibling');
+      }
+    });
 
     // Close modal immediately after save
     handleClose();
