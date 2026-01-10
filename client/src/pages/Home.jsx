@@ -182,13 +182,11 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {SHOWCASE_TREES.map((item, index) => (
+            {SHOWCASE_TREES.map((item) => (
               <Link
                 key={item.id}
                 to="/builder"
-                className={`group relative rounded-2xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-primary-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary-500/10 ${
-                  index === 0 ? 'md:col-span-2 md:row-span-2' : ''
-                }`}
+                className="group relative rounded-2xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-primary-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary-500/10"
               >
                 <div className="relative">
                   <img
@@ -201,7 +199,7 @@ export default function Home() {
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className={`text-white font-semibold mb-1 ${index === 0 ? 'text-xl sm:text-2xl' : 'text-lg'}`}>{item.theme}</h3>
+                      <h3 className="text-white font-semibold mb-1 text-lg">{item.theme}</h3>
                       <p className="text-gray-400 text-sm">{item.description}</p>
                     </div>
                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0 translate-x-2">
@@ -211,16 +209,6 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                {index === 0 && (
-                  <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
-                    <span className="inline-flex items-center gap-1.5 bg-primary-500 text-surface-950 text-xs font-semibold px-3 py-1.5 rounded-full">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      Featured
-                    </span>
-                  </div>
-                )}
               </Link>
             ))}
           </div>
