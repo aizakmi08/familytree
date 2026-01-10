@@ -190,13 +190,13 @@ export default function Home() {
                   index === 0 ? 'md:col-span-2 md:row-span-2' : ''
                 }`}
               >
-                <div className={`relative ${index === 0 ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}>
+                <div className="relative">
                   <img
                     src={item.image}
                     alt={`${item.theme} family tree example`}
-                    className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-700"
+                    className="w-full h-auto group-hover:scale-[1.02] transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-surface-950/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500" />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
                   <div className="flex items-center justify-between">
