@@ -186,28 +186,22 @@ export default function Home() {
               <Link
                 key={item.id}
                 to="/builder"
-                className="group relative rounded-2xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-primary-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary-500/10"
+                className="group flex flex-col rounded-2xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-primary-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary-500/10"
               >
-                <div className="relative pb-20 sm:pb-24">
+                <div className="relative overflow-hidden rounded-t-2xl">
                   <img
                     src={item.image}
                     alt={`${item.theme} family tree example`}
                     className="w-full h-auto group-hover:scale-[1.02] transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-surface-950/30 to-surface-950/40 opacity-80 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none" />
-                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
-                    <span className="inline-block bg-surface-950/80 backdrop-blur-md text-white text-sm font-semibold px-3 py-1.5 rounded-lg border border-white/20 shadow-lg">
-                      {item.theme}
-                    </span>
-                  </div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 z-10">
-                  <div className="flex items-center justify-between bg-surface-950/60 backdrop-blur-sm rounded-xl p-3 sm:p-4">
-                    <div>
-                      <h3 className="text-white font-bold mb-1 text-lg drop-shadow-lg">{item.theme}</h3>
-                      <p className="text-gray-300 text-sm drop-shadow-md">{item.description}</p>
+                <div className="p-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold mb-1 text-lg">{item.theme}</h3>
+                      <p className="text-gray-300 text-sm">{item.description}</p>
                     </div>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0 translate-x-2">
+                    <div className="flex-shrink-0 ml-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0 translate-x-2">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
