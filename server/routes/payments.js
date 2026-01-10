@@ -6,6 +6,8 @@ import express from 'express';
 import Stripe from 'stripe';
 import { DOWNLOAD_PRICE } from '../services/themes.js';
 import { getCleanUrl } from './generate.js';
+import Purchase from '../models/Purchase.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -45,6 +47,24 @@ router.post('/create-checkout', async (req, res) => {
     // If Stripe is not configured, allow download for demo/testing
     if (!stripeClient) {
       console.log('⚠️ Stripe not configured - allowing free download for demo');
+
+      // Still save the "purchase" for demo mode so user can re-download
+      try {
+        const user = await User.findOne({ email: email.toLowerCase() });
+        await Purchase.create({
+          email: email.toLowerCase(),
+          imageId,
+          cleanUrl,
+          stripeSessionId: `demo_${Date.now()}`,
+          amount: 0,
+          currency: 'usd',
+          userId: user?._id || null,
+        });
+        console.log(`💾 Demo purchase saved for ${email}`);
+      } catch (dbError) {
+        console.error('⚠️ Failed to save demo purchase:', dbError.message);
+      }
+
       return res.json({
         success: true,
         downloadUrl: cleanUrl,
@@ -113,6 +133,7 @@ router.get('/verify-session/:sessionId', async (req, res) => {
       // SECURITY: Retrieve clean URL server-side using the stored imageId
       const imageId = session.metadata?.imageId;
       const cleanUrl = imageId ? await getCleanUrl(imageId) : null;
+      const email = session.metadata?.email || session.customer_email;
 
       if (!cleanUrl) {
         // Fallback for legacy sessions or expired images
@@ -124,11 +145,37 @@ router.get('/verify-session/:sessionId', async (req, res) => {
         });
       }
 
+      // Save purchase to database for future re-downloads
+      try {
+        // Check if this session was already saved
+        const existingPurchase = await Purchase.findOne({ stripeSessionId: sessionId });
+
+        if (!existingPurchase) {
+          // Find user by email if they have an account
+          const user = await User.findOne({ email: email.toLowerCase() });
+
+          await Purchase.create({
+            email: email.toLowerCase(),
+            imageId,
+            cleanUrl,
+            stripeSessionId: sessionId,
+            stripePaymentIntentId: session.payment_intent,
+            amount: session.amount_total || 299,
+            currency: session.currency || 'usd',
+            userId: user?._id || null,
+          });
+          console.log(`💾 Purchase saved for ${email}`);
+        }
+      } catch (dbError) {
+        // Log but don't fail - user should still get their download
+        console.error('⚠️ Failed to save purchase to database:', dbError.message);
+      }
+
       res.json({
         success: true,
         paid: true,
         downloadUrl: cleanUrl, // Only revealed after payment verification
-        email: session.metadata?.email || session.customer_email,
+        email,
       });
     } else {
       res.json({
@@ -185,6 +232,37 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   } catch (error) {
     console.error('Webhook error:', error.message);
     res.status(400).json({ error: `Webhook error: ${error.message}` });
+  }
+});
+
+/**
+ * GET /api/payments/purchases/:email
+ * Get all purchases for an email address
+ */
+router.get('/purchases/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email is required' });
+    }
+
+    const purchases = await Purchase.find({ email: email.toLowerCase() })
+      .sort({ createdAt: -1 })
+      .select('cleanUrl createdAt amount');
+
+    res.json({
+      success: true,
+      purchases: purchases.map(p => ({
+        id: p._id,
+        downloadUrl: p.cleanUrl,
+        purchasedAt: p.createdAt,
+        amount: p.amount / 100, // Convert cents to dollars
+      })),
+    });
+  } catch (error) {
+    console.error('Get purchases error:', error);
+    res.status(500).json({ error: 'Failed to retrieve purchases' });
   }
 });
 

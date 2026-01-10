@@ -305,6 +305,7 @@ export default function Home() {
             <span className="text-gray-500 text-sm">Heritage</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-500">
+            <Link to="/purchases" className="hover:text-gray-300 transition-colors">My Purchases</Link>
             <Link to="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
             <Link to="/contact" className="hover:text-gray-300 transition-colors">Contact</Link>
