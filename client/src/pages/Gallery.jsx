@@ -71,7 +71,7 @@ export default function Gallery() {
             {allGenerations.map((generation, index) => (
               <div
                 key={index}
-                onClick={() => setSelectedImage(generation.imageUrl)}
+                onClick={() => setSelectedImage(generation)}
                 className="group relative aspect-square rounded-xl overflow-hidden bg-surface-900 border border-surface-800 hover:border-surface-600 cursor-pointer transition-all image-protection-container"
                 onContextMenu={(e) => e.preventDefault()}
               >
@@ -110,7 +110,8 @@ export default function Gallery() {
       {/* View Image Modal */}
       {selectedImage && (
         <GenerationResult
-          imageUrl={selectedImage}
+          imageUrl={selectedImage.imageUrl}
+          imageId={selectedImage.imageId}
           onClose={() => setSelectedImage(null)}
           onRegenerate={() => setSelectedImage(null)}
         />
