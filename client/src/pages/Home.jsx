@@ -78,6 +78,12 @@ const SHOWCASE_TREES = [
   },
   {
     id: 6,
+    theme: 'Botanical',
+    description: 'Nature-inspired floral design',
+    image: '/botanical.png',
+  },
+  {
+    id: 7,
     theme: 'Custom Theme',
     description: 'Create your own unique style',
     image: '/customf1.png',
