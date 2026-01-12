@@ -84,9 +84,16 @@ const SHOWCASE_TREES = [
   },
   {
     id: 7,
-    theme: 'Custom Theme',
+    theme: 'Custom',
     description: 'Create your own unique style',
     image: '/customf1.png',
+  },
+  {
+    id: 8,
+    theme: 'Your Theme',
+    description: 'Design any style you imagine',
+    image: null,
+    isCustomCTA: true,
   },
 ];
 
@@ -191,22 +198,40 @@ export default function Home() {
               <Link
                 key={item.id}
                 to="/builder"
-                className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-900 border border-surface-800/50 hover:border-primary-500/40 transition-all duration-300"
+                className={`group relative aspect-[3/4] rounded-xl overflow-hidden transition-all duration-300 ${
+                  item.isCustomCTA
+                    ? 'bg-gradient-to-br from-primary-500/20 to-primary-600/10 border-2 border-dashed border-primary-500/40 hover:border-primary-400'
+                    : 'bg-surface-900 border border-surface-800/50 hover:border-primary-500/40'
+                }`}
               >
-                <img
-                  src={item.image}
-                  alt={`${item.theme} theme`}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="text-white text-sm font-medium truncate">{item.theme}</h3>
-                </div>
-                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
+                {item.isCustomCTA ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                    <div className="w-12 h-12 rounded-full bg-primary-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white text-sm font-medium mb-1">Your Theme</h3>
+                    <p className="text-gray-400 text-xs">Create any style</p>
+                  </div>
+                ) : (
+                  <>
+                    <img
+                      src={item.image}
+                      alt={`${item.theme} theme`}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h3 className="text-white text-sm font-medium truncate">{item.theme}</h3>
+                    </div>
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </>
+                )}
               </Link>
             ))}
           </div>
